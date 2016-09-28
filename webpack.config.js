@@ -1,11 +1,11 @@
 var GhPagesWebpackPlugin = require('gh-pages-webpack-plugin');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  entry: "./xo-game-main.js",
-
+  entry: './xo-game-main.js',
   output: {
-    path: "./dist",
-    filename: "xo-game-bundle.js"
+    path: './dist',
+    filename: 'xo-game-bundle.js'
   },
 
   plugins: [
@@ -18,7 +18,14 @@ module.exports = {
           email: ''
         }
       }
-    })
+    }),
+    new CopyWebpackPlugin([{
+      from: 'index.html',
+      to: ''
+    }, {
+      from: '*.css',
+      to: ''
+    }, ])
   ]
 
 };
