@@ -10,10 +10,11 @@
   var Shake = require('shake.js');  
   var XoGameEngine = require("./xo-game-engine");
 
-  //  creating field 3x3 for collecting 3 items
+  // creating field 3x3 for collecting 3 items
   var myGameEngine = new XoGameEngine(3, 3, 3);
 
   window.onload = function() {
+    alert('test');
     field = document.querySelector('.field');
     field.addEventListener('click', clickHandler, false);
     initGame();

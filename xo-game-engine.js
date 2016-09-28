@@ -17,7 +17,7 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
     turns = {};
     var currentPlayer = 0;
   }
-
+ 
   this.makeTurn = function makeTurn(x, y) {
     var vectors = [
       [-1, -1, 1, 1],
