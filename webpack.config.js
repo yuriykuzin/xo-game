@@ -15,7 +15,7 @@ module.exports = {
         message: 'Update live page by webpack',
         user: {
           name: 'Yuriy Kuzin',
-          email: 'yuriy.kuzin@gmail.com'
+          email: ''
         }
       }
     })
