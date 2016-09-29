@@ -9,7 +9,7 @@ module.exports = {
   },
 
   plugins: [
-    new GhPagesWebpackPlugin({
+    /*new GhPagesWebpackPlugin({
       path: './dist',
       options: {
         message: 'Update live page by webpack',
@@ -18,7 +18,7 @@ module.exports = {
           email: ''
         }
       }
-    }),
+    }),*/
     new CopyWebpackPlugin([{
       from: 'index.html',
       to: ''
