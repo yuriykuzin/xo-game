@@ -48,8 +48,8 @@
 
 	  'use strict';
 
-	  var isHumanX = true;
-	  var isHumanO = false;
+	  var isHumanX = false;
+	  var isHumanO = true;
 
 	  var nextTurnIsX;
 	  var backField;
@@ -111,6 +111,7 @@
 	    backField = document.querySelector('.field__background');
 	    myGameEngine.start();
 	    isGameActive = true;
+	    if (!isHumanX) turnHandler();
 	  }
 
 	  function clickHandler(e) {
@@ -166,7 +167,7 @@
 	    }
 
 	    if (isGameActive && !(nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO)) 
-	      setTimeout(turnHandler, Math.random() * 800);
+	      setTimeout(turnHandler, Math.random() * 1000 + 1500);
 	  }
 
 	  function restartClickHandler() {
@@ -398,10 +399,11 @@
 
 	  this.makeComputedTurn = function() {
 	    var bestTurn = {
-	      x: Math.round(Math.random() * (sizeX)),
-	      y: Math.round(Math.random() * (sizeY)),
-	      score: 0
+	      x: Math.round(Math.random() * (sizeX-1)),
+	      y: Math.round(Math.random() * (sizeY-1)),
+	      score: 3
 	    };
+	    var candidates = {};
 	    var newTurn;
 	    var yourValues;
 	    for (var turn in turns) {
@@ -410,9 +412,10 @@
 	          newTurn = {};
 	          newTurn.x = vectors[i][j] + parseInt(turn.split(';')[0], 10);
 	          newTurn.y = vectors[i][j + 1] + parseInt(turn.split(';')[1], 10);
-	          if (newTurn.x < 0 || newTurn.y < 0 || newTurn.x >= sizeX || newTurn.y >= sizeY || (('' + newTurn.x + ';' + newTurn.y) in turns)) {
-	            continue;
-	          }
+	          if (newTurn.x < 0 || newTurn.y < 0 || newTurn.x >= sizeX 
+	            || newTurn.y >= sizeY || (('' + newTurn.x + ';' + newTurn.y) in turns)
+	            || (('' + newTurn.x + ';' + newTurn.y) in candidates)) continue;
+	          
 	          // false means 'only calculate without setting' 
 	          newTurn.values = calculateValues(newTurn.x, newTurn.y, currentPlayerIsFirst, false);
 	          if (Math.max.apply(null, newTurn.values) >= winCondition) return this.makeTurn(newTurn.x, newTurn.y);
@@ -427,6 +430,7 @@
 	              return sum + current;
 	            }, 0);
 	          }
+	          candidates[('' + newTurn.x + ';' + newTurn.y)] = newTurn.score;
 	          if (newTurn.score > bestTurn.score) bestTurn = newTurn;
 	        }
 	      }
