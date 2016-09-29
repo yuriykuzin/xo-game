@@ -48,12 +48,15 @@
 
 	  'use strict';
 
+	  var isHumanX = true;
+	  var isHumanO = false;
+
 	  var nextTurnIsX;
 	  var backField;
 	  var field;
 	  var isGameActive;
 
-	  var Shake = __webpack_require__(1);  
+	  var Shake = __webpack_require__(1);
 	  var XoGameEngine = __webpack_require__(2);
 
 	  // creating field 3x3 for collecting 3 items
@@ -96,7 +99,7 @@
 	    for (var i = 0; i < 9; i++) {
 	      newElement = document.createElement('div');
 	      newElement.className = 'cell empty';
-	      newElement.id = 'cell' + (i % 3 + 1) + Math.floor(i / 3 + 1);
+	      newElement.id = 'cell' + (i % 3) + '_' + Math.floor(i / 3);
 	      fragment.appendChild(newElement);
 	    }
 	    newElement = document.createElement('div');
@@ -113,47 +116,57 @@
 	  function clickHandler(e) {
 	    e.preventDefault();
 	    var elem = document.elementFromPoint(e.clientX, e.clientY);
-	    var turnRes;
 	    if (isGameActive && elem.classList.contains('empty')) {
-	      elem.classList.remove('empty');
-	      if (nextTurnIsX) {
-	        elem.classList.add('x-cell');
-	        elem.innerHTML = 'x';
-	      }
-	      else {
-	        elem.classList.add('o-cell');
-	        elem.innerHTML = 'o';
-	      }
-	      elem.classList.add('start-swing');
-	      setTimeout(function() {
-	        elem.classList.remove('start-swing');
-	      }, 2000);
-	      turnRes = myGameEngine.makeTurn(Number(elem.id.charAt(4)), Number(elem.id.charAt(5)));
-	      if (turnRes.status === 'victory') {
-	        for (var i = 0; i < turnRes.winArray.length; i++) {
-	          document.querySelector('#cell' + turnRes.winArray[i].join('')).classList.add('win-combo');
-	        }
-	      }
-	      if (turnRes.status === 'draw' || turnRes.status === 'victory') {
-	        var elems = document.querySelectorAll('.cell:not(.win-combo)');
-	        for (var i = 0; i < elems.length; i++) {
-	          elems[i].classList.add('cell-fadeout');
-	        }
-	        setClickToRestart();
-	      }
-	      else {
-	        nextTurnIsX = !nextTurnIsX;
-	        fadeBackground(backField);
-	      }
+	      if (nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO) turnHandler(elem);
+	      else turnHandler();
 	    }
 	  }
 
-	  function setClickToRestart() {
-	    isGameActive = false;
+	  function turnHandler(elem) {
+	    var turnRes;
+	    if (elem === undefined) {
+	      turnRes = myGameEngine.makeComputedTurn();
+	      elem = document.querySelector('#cell' + turnRes.x + '_' + turnRes.y);
+	    }
+	    else turnRes = myGameEngine.makeTurn(Number(elem.id.slice(4, elem.id.indexOf('_'))),
+	      Number(elem.id.slice(elem.id.indexOf('_') + 1)));
+	    elem.classList.remove('empty');
+	    if (nextTurnIsX) {
+	      elem.classList.add('x-cell');
+	      elem.innerHTML = 'x';
+	    }
+	    else {
+	      elem.classList.add('o-cell');
+	      elem.innerHTML = 'o';
+	    }
+	    elem.classList.add('start-swing');
 	    setTimeout(function() {
-	        document.addEventListener('click', restartClickHandler, false);
-	      },
-	      1500);
+	      elem.classList.remove('start-swing');
+	    }, 2000);
+
+	    if (turnRes.status === 'victory') {
+	      for (var i = 0; i < turnRes.winArray.length; i++) {
+	        document.querySelector('#cell' + turnRes.winArray[i].join('_')).classList.add('win-combo');
+	      }
+	    }
+	    if (turnRes.status === 'draw' || turnRes.status === 'victory') {
+	      var elems = document.querySelectorAll('.cell:not(.win-combo)');
+	      for (var i = 0; i < elems.length; i++) {
+	        elems[i].classList.add('cell-fadeout');
+	      }
+	      isGameActive = false;
+	      setTimeout(function() {
+	          document.addEventListener('click', restartClickHandler, false);
+	        },
+	        1500);
+	    }
+	    else {
+	      nextTurnIsX = !nextTurnIsX;
+	      fadeBackground(backField);
+	    }
+
+	    if (isGameActive && !(nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO)) 
+	      setTimeout(turnHandler, Math.random() * 800);
 	  }
 
 	  function restartClickHandler() {
@@ -317,97 +330,154 @@
 /***/ function(module, exports) {
 
 	/*
-	*   Engine for processing m,n,k-games
-	*
-	*   In particular:
-	*     - tic-tac-toe is the 3,3,3-game 
-	*     - free-style gomoku is the 19,19,5-game
-	*
-	*   More details about m,n,k - games:
-	*   https://en.wikipedia.org/wiki/M,n,k-game
-	*/
+	 *   Engine for processing m,n,k-games
+	 *
+	 *   In particular:
+	 *     - tic-tac-toe is the 3,3,3-game 
+	 *     - free-style gomoku is the 19,19,5-game
+	 *
+	 *   More details about m,n,k - games:
+	 *   https://en.wikipedia.org/wiki/M,n,k-game
+	 */
 
 	function XoGameEngine(sizeX, sizeY, winCondition) {
+
+	  var vectors = [
+	    [-1, -1, 1, 1],
+	    [0, -1, 0, 1],
+	    [1, -1, -1, 1],
+	    [-1, 0, 1, 0]
+	  ];
+
 	  var turns = {};
-	  var currentPlayer = 0;
+	  var currentPlayerIsFirst = true;
+	  var winArray = [];
+	  var isVictory = false;
 
 	  this.start = function start() {
 	    turns = {};
-	    var currentPlayer = 0;
-	  }
-	 
+	    currentPlayerIsFirst = true;
+	    winArray = [];
+	    isVictory = false;
+	  };
+
 	  this.makeTurn = function makeTurn(x, y) {
-	    var vectors = [
-	      [-1, -1, 1, 1],
-	      [0, -1, 0, 1],
-	      [1, -1, -1, 1],
-	      [-1, 0, 1, 0]
-	    ];
-	    var newValues = [];
-	    var winArray = [];
-	    var isVictory = false;
+	    var res = {
+	      x: x,
+	      y: y
+	    };
+	    if (x < 0 || y < 0 || x >= sizeX || y >= sizeY || (('' + x + ';' + y) in turns)) {
+	      res.status = "error";
+	      return res;
+	    }
+	    
+	    // true means - let's also SET new calculated values to every proper cell
+	    var newValues = calculateValues(x, y, currentPlayerIsFirst, true);
 
-	    if (x < 0 || y < 0 || x > sizeX || y > sizeY || (('' + x + ';' + y) in turns)) {
-	      return {
-	        status: "error"
-	      };
+	    if (Math.max.apply(null, newValues) >= winCondition) {
+	      winArray.push([x, y]);
+	      isVictory = true;
 	    }
 
-	    for (var i = 0; i <= 3; i++) {
-	      newValues[i] = 1 + getValue(x + vectors[i][0], y + vectors[i][1], i) +
-	        getValue(x + vectors[i][2], y + vectors[i][3], i);
-	      if (newValues[i] > 1) {
-	        setValueByVector(x, y, newValues[i], i, vectors[i].slice(0, 2));
-	        setValueByVector(x, y, newValues[i], i, vectors[i].slice(2));
-	      }
-	      if (newValues[i] >= winCondition) {
-	        winArray.push([x, y]);
-	        isVictory = true;
-	      }
-	    }
-
-	    turns[('' + x + ';' + y)] = {
-	      player: currentPlayer,
-	      values: newValues,
-	    }
-
-	    if (isVictory) return {
-	      status: "victory",
-	      winArray: winArray,
-	      winnerId: currentPlayer
-	    }
+	    if (isVictory) {
+	      res.status = "victory";
+	      res.winArray = winArray;
+	      res.winnerIsFirst = currentPlayerIsFirst;
+	      return res;
+	    };
 
 	    if (Object.keys(turns).length === sizeX * sizeY) {
-	      return {
-	        status: "draw"
+	      res.status = 'draw';
+	      return res;
+	    }
+
+	    currentPlayerIsFirst = !currentPlayerIsFirst;
+	    res.status = 'ok';
+	    return res;
+	  };
+
+	  this.makeComputedTurn = function() {
+	    var bestTurn = {
+	      x: Math.round(Math.random() * (sizeX)),
+	      y: Math.round(Math.random() * (sizeY)),
+	      score: 0
+	    };
+	    var newTurn;
+	    var yourValues;
+	    for (var turn in turns) {
+	      for (var i = 0; i < 4; i++) {
+	        for (var j = 0; j < 4; j += 2) {
+	          newTurn = {};
+	          newTurn.x = vectors[i][j] + parseInt(turn.split(';')[0], 10);
+	          newTurn.y = vectors[i][j + 1] + parseInt(turn.split(';')[1], 10);
+	          if (newTurn.x < 0 || newTurn.y < 0 || newTurn.x >= sizeX || newTurn.y >= sizeY || (('' + newTurn.x + ';' + newTurn.y) in turns)) {
+	            continue;
+	          }
+	          // false means 'only calculate without setting' 
+	          newTurn.values = calculateValues(newTurn.x, newTurn.y, currentPlayerIsFirst, false);
+	          if (Math.max.apply(null, newTurn.values) >= winCondition) return this.makeTurn(newTurn.x, newTurn.y);
+	          yourValues = calculateValues(newTurn.x, newTurn.y, !currentPlayerIsFirst, false);
+	          if (Math.max.apply(null, yourValues) >= winCondition) {
+	            newTurn.score = 10000;
+	          }
+	          else {
+	            newTurn.score = newTurn.values.reduce(function(sum, current) {
+	              return sum + current;
+	            }, 0) + yourValues.reduce(function(sum, current) {
+	              return sum + current;
+	            }, 0);
+	          }
+	          if (newTurn.score > bestTurn.score) bestTurn = newTurn;
+	        }
+	      }
+	    }
+	    return this.makeTurn(bestTurn.x, bestTurn.y);
+	  };
+
+	  // Private methods:
+
+	  function getValue(x, y, directionId, isByFirstPlayer) {
+	    if (isByFirstPlayer === undefined) isByFirstPlayer = currentPlayerIsFirst;
+	    if (!(('' + x + ';' + y) in turns)) return 0;
+	    var res = turns['' + x + ';' + y];
+	    if (res.isByFirstPlayer === isByFirstPlayer) {
+	      return res.values[directionId];
+	    }
+	    else return 0;
+	  }
+
+	  function calculateValues(x, y, isByFirstPlayer, isAlsoSet) {
+	    var newValues = [];
+	    for (var i = 0; i <= 3; i++) {
+	      newValues[i] = 1 + getValue(x + vectors[i][0], y + vectors[i][1], i, isByFirstPlayer) +
+	        getValue(x + vectors[i][2], y + vectors[i][3], i, isByFirstPlayer);
+	      if (isAlsoSet) {
+	        if (newValues[i] > 1) {
+	          setValueByVector(x, y, newValues[i], i, vectors[i].slice(0, 2));
+	          setValueByVector(x, y, newValues[i], i, vectors[i].slice(2));
+	        }
+	      }
+	    }
+	    if (isAlsoSet) {
+	      turns[('' + x + ';' + y)] = {
+	        isByFirstPlayer: currentPlayerIsFirst,
+	        values: newValues,
 	      };
 	    }
+	    return newValues;
+	  }
 
-	    currentPlayer = (currentPlayer === 0) ? 1 : 0;
-	    return {
-	      status: "ok"
+	  function setValueByVector(x, y, value, directionId, vector) {
+	    var myX = x + vector[0];
+	    var myY = y + vector[1];
+	    if (myX < 0 || myY < 0 || myX >= sizeX || myY >= sizeY || !(('' + myX + ';' + myY) in turns)) return false;
+	    if (turns['' + myX + ';' + myY].isByFirstPlayer === currentPlayerIsFirst) {
+	      turns['' + myX + ';' + myY].values[directionId] = value;
+	      if (value >= winCondition) winArray.push([myX, myY]);
+	      setValueByVector(myX, myY, value, directionId, vector);
+	      return true;
 	    }
-
-	    function getValue(x, y, directionId) {
-	      if (!(('' + x + ';' + y) in turns)) return 0;
-	      var res = turns['' + x + ';' + y];
-	      if (res.player === currentPlayer) {
-	        return res.values[directionId];
-	      }
-	      else return 0;
-	    }
-
-	    function setValueByVector(x, y, value, directionId, vector) {
-	      var myX = x + vector[0];
-	      var myY = y + vector[1];
-	      if (myX < 0 || myY < 0 || myX > sizeX || myY > sizeY || !(('' + myX + ';' + myY) in turns)) return false;
-	      var thisCell = turns['' + myX + ';' + myY];
-	      if (thisCell.player === currentPlayer) {
-	        thisCell.values[directionId] = value;
-	        if (value >= winCondition) winArray.push([myX, myY]);
-	        setValueByVector(myX, myY, value, directionId, vector);
-	      }
-	    }
+	    return false;
 	  }
 	}
 
