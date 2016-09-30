@@ -2,14 +2,17 @@
 
   'use strict';
 
-  var isHumanX = false;
+  var isHumanX = true;
   var isHumanO = true;
 
   var nextTurnIsX;
   var backField;
-  var field;
+  var fieldElement;
+  var boardElement;
   var isGameActive;
   var isProcessing;
+  var isOptionsShown = false;
+  var optionsBtn;
 
   var Shake = require('shake.js');
   var XoGameEngine = require('./xo-game-engine');
@@ -18,8 +21,18 @@
   var myGameEngine = new XoGameEngine(3, 3, 3);
 
   window.onload = function() {
-    field = document.querySelector('.field');
-    field.addEventListener('click', clickHandler, false);
+    fieldElement = document.querySelector('.field');
+    boardElement = document.querySelector('.board');
+    fieldElement.addEventListener('click', clickHandler, false);
+    document.querySelector('#myonoffswitch').addEventListener('click', function() {
+      isHumanX = !isHumanX;
+    }, false);
+    document.querySelector('#myonoffswitch2').addEventListener('click', function() {
+      isHumanO = !isHumanO;
+    }, false);
+    optionsBtn = document.querySelector('.options-button');
+    optionsBtn.addEventListener('click', showOptions, false);
+    fieldElement.addEventListener('click', clickHandler, false);
     initGame();
 
     var myShakeEvent = new Shake({
@@ -29,6 +42,25 @@
     myShakeEvent.start();
     window.addEventListener('shake', shakeEventDidOccur, false);
   };
+
+  function showOptions() {
+    fieldElement.classList.remove('field-start-animation');
+    if (boardElement.classList.contains('options-is-shown')) {
+      boardElement.classList.add('options-no-show');
+      setTimeout(function() {
+        boardElement.classList.remove('options-is-shown');
+        boardElement.classList.remove('options-no-show');
+      }, 1200);
+    }
+    else {
+      boardElement.classList.add('options-show');
+      setTimeout(function() {
+        boardElement.classList.add('options-is-shown');
+        boardElement.classList.remove('options-show');
+      }, 1200);
+    }
+    isOptionsShown = !isOptionsShown;
+  }
 
   function shakeEventDidOccur() {
     var elems = document.querySelectorAll('.cell');
@@ -61,7 +93,7 @@
     newElement.className = 'field__background';
     newElement.innerHTML = 'x';
     fragment.appendChild(newElement);
-    field.appendChild(fragment);
+    fieldElement.appendChild(fragment);
     nextTurnIsX = true;
     backField = document.querySelector('.field__background');
     myGameEngine.start();
@@ -72,9 +104,10 @@
 
   function clickHandler(e) {
     e.preventDefault();
+    var elem = document.elementFromPoint(e.clientX, e.clientY);
+    if (!elem.classList.contains('cell')) return;
     if (isProcessing) return;
     else isProcessing = true;
-    var elem = document.elementFromPoint(e.clientX, e.clientY);
     if (isGameActive && elem.classList.contains('empty')) {
       if (nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO) turnHandler(elem);
       else turnHandler();
@@ -109,6 +142,10 @@
         document.querySelector('#cell' + turnRes.winArray[i].join('_')).classList.add('win-combo');
       }
     }
+    else if (turnRes.status === 'draw') {
+      backField.classList.add('fadeout');
+    }
+
     if (turnRes.status === 'draw' || turnRes.status === 'victory') {
       var elems = document.querySelectorAll('.cell:not(.win-combo)');
       for (var i = 0; i < elems.length; i++) {
@@ -125,17 +162,20 @@
       fadeBackground(backField);
     }
 
-    if (isGameActive && !(nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO)) 
+    if (isGameActive && !(nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO))
       setTimeout(turnHandler, Math.random() * 1000 + 1500);
-      else isProcessing = false;
+    else isProcessing = false;
   }
 
-  function restartClickHandler() {
+  function restartClickHandler(e) {
+    if (document.elementFromPoint(e.clientX, e.clientY).className === 'options-button' ||
+      boardElement.classList.contains('options-is-shown')) return;
     document.removeEventListener('click', restartClickHandler, false);
-    fadeBackground(field, 100);
-    field.classList.remove('field-fadeout');
-    while (field.firstChild) {
-      field.removeChild(field.firstChild);
+    fadeBackground(fieldElement, 100);
+    fieldElement.classList.add('field-start-animation');
+    fieldElement.classList.remove('field-fadeout');
+    while (fieldElement.firstChild) {
+      fieldElement.removeChild(fieldElement.firstChild);
     }
     initGame();
   }

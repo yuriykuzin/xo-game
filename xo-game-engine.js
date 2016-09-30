@@ -8,7 +8,7 @@
  *   More details about m,n,k - games:
  *   https://en.wikipedia.org/wiki/M,n,k-game
  */
-
+ 
 function XoGameEngine(sizeX, sizeY, winCondition) {
 
   var vectors = [
