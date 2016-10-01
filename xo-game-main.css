@@ -3,20 +3,47 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  font-family: Arial;
+  color: #dfe7f0;
+  font-size: 12px;
 }
 
-.field {
+.board {
   border: 0;
   display: inline-block;
   width: 90vmin;
-  height: auto;
+  height: 90vmin;
   position: absolute;
   top: 50%;
   margin-top: -45vmin;
   left: 50%;
   margin-left: -43vmin;
   padding: 0;
+}
+
+.options-frame {
+  opacity: 0;
+  z-index: -1;
+  position: absolute;
+  top: 0vmin;
+  left: 0vmin;
+  width: 83vmin;
+  height: 83vmin;
+  margin: 1vmin 5vmin 1vmin 1vmin;
+  border: 2px solid #C4AA12;
+  border-radius: 7px;
+}
+
+.field {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.field__start-animation {
   animation-duration: 1s;
   animation-fill-mode: both;
   animation-name: fadeInDown;
@@ -24,10 +51,12 @@
 
 .field__background {
   position: absolute;
-  top: -56vmin;
+  top: 0;
   width: 86vmin;
+  height: 90vmin;
   font-family: 'Helvetica', 'Arial', sans-serif;
   font-size: 150vmin;
+  line-height: 63vmin;
   text-align: center;
   overflow: hidden;
   color: yellow;
@@ -36,10 +65,10 @@
   animation-duration: 0.5s;
   animation-fill-mode: both;
   animation-timing-function: ease-in-out;
-  animation-name: fadeIn;
+  animation-name: background__keyframes-fadein;
 }
 
-@keyframes fadeIn {
+@keyframes background__keyframes-fadein {
   0% {
     opacity: 0;
   }
@@ -48,14 +77,14 @@
   }
 }
 
-.fadeout {
+.field__background-fadeout {
   animation-duration: 0.5s;
   animation-fill-mode: both;
   animation-timing-function: ease-in-out;
-  animation-name: fadeOut;
+  animation-name: background__keyframes-fadeout;
 }
 
-@keyframes fadeOut {
+@keyframes background__keyframes-fadeout {
   0% {
     opacity: 0.07;
   }
@@ -83,7 +112,8 @@
   cursor: pointer;
 }
 
-.cell.mega-swing {
+.cell.mega-swing,
+.options-frame.mega-swing {
   animation-duration: 2s;
   animation-fill-mode: both;
   transform-origin: top center;
@@ -188,5 +218,204 @@
   }
   100% {
     opacity: 0.4;
+  }
+}
+
+.options-button {
+  display: inline-block;
+  cursor: pointer;
+  opacity: 0.5;
+  z-index: 1;
+  -webkit-border-radius: 5;
+  -moz-border-radius: 5;
+  border-radius: 5px;
+  text-shadow: 2px 2px 2px #666666;
+  padding: 7px 12px 7px 12px;
+  border: solid #1f628d 1px;
+  text-decoration: none;
+  margin-top: 3vmin;
+  margin-left: 6vmin;
+}
+
+/****** Animation of the option frame appearance: ******/
+
+.options__is-shown .field {
+  opacity: 0;
+  z-index: -1;
+}
+
+.options__is-shown .options-frame {
+  opacity: 1;
+  z-index: 1;
+}
+
+.options__animation-show,
+.options__animation-hide {
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  backface-visibility: visible !important;
+  animation-name: options__keyframes-flipshow;
+}
+
+@keyframes options__keyframes-flipshow {
+  0% {
+    transform: perspective(400px) rotateX(0deg);
+    opacity: 1;
+  }
+  45% {
+    opacity: 1;
+  }
+  50% {
+    transform: perspective(400px) rotateX(90deg);
+    opacity: 0;
+  }
+  50.1% {
+    transform: perspective(400px) rotateX(-90deg);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(400px) rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+.options__animation-show .field,
+.options__animation-hide .options-frame {
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  backface-visibility: visible !important;
+  animation-name: options__keyframes-hide;
+}
+
+.options__animation-hide .field,
+.options__animation-show .options-frame {
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  backface-visibility: visible !important;
+  animation-name: options__keyframes-show;
+}
+
+@keyframes options__keyframes-hide {
+  45% {
+    opacity: 1;
+  }
+  49% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    z-index: -1;
+  }
+}
+
+@keyframes options__keyframes-show {
+  45% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    z-index: 1;
+  }
+}
+
+
+/******** Form ************/
+
+.options-form__fieldset {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.options-form__control {
+  height: 26px;
+  padding: 3px 6px;
+  font-size: 12px;
+  background-color: transparent;
+  color: #808E9E;
+  margin-left: 3vmin;
+  background-image: none;
+  border-radius: 4px;
+}
+
+.options-form__legend {
+  width: 80%;
+  padding: 6vmin 0 6px 0;
+  margin-bottom: 10vmin;
+  font-size: 21px;
+  color: #6C7A89;
+  border: 0;
+  border-bottom: 1px solid #0F3C5B;
+  text-align: center;
+}
+
+.options-form__row {
+  margin-bottom: 3vmin;
+}
+
+.options-form__label {
+  padding-top: 5px;
+  margin-bottom: 0;
+  text-align: right;
+  width: 37vmin;
+  float: left;
+}
+
+.options-form__control option {
+  color: #6F7E8D;
+  background: #011A35;
+}
+
+.options-form__btn {
+  display: inline-block;
+  cursor: pointer;
+  opacity: 0.7;
+  z-index: 1;
+  -webkit-border-radius: 5;
+  -moz-border-radius: 5;
+  border-radius: 5px;
+  text-shadow: 2px 2px 2px #666666;
+  padding: 7px 12px 7px 12px;
+  border: solid #1f628d 1px;
+  text-decoration: none;
+  margin: 0 1vmin 0 1vmin;
+  background-color: transparent;
+  color: #dfe7f0;
+}
+
+.options-form__row.buttons {
+  margin-top: 5vmin;
+  text-align: center;
+  width: 100%;
+  display: inline-block;
+}
+
+
+/****** Mobile adaptation: *******/
+
+@media only screen and (min-width: 840px) {
+  .options-button:hover,
+  .options-form__btn:hover {
+    opacity: 0.85;
+  }
+  .options-form__label {
+    width: 39vmin;
+  }
+}
+
+@media only screen and (max-width: 840px) {
+  .options-button:active,
+  .options-form__btn:active {
+    opacity: 0.85;
+  }
+  .options-form__label {
+    width: 37vmin;
   }
 }
