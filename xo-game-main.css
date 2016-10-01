@@ -36,7 +36,6 @@
 }
 
 .field {
-  /*display: none;*/
   width: 100%;
   height: 100%;
   border: 0;
@@ -44,7 +43,7 @@
   margin: 0;
 }
 
-.field-start-animation {
+.field__start-animation {
   animation-duration: 1s;
   animation-fill-mode: both;
   animation-name: fadeInDown;
@@ -57,7 +56,7 @@
   height: 90vmin;
   font-family: 'Helvetica', 'Arial', sans-serif;
   font-size: 150vmin;
-  line-height: 65vmin;
+  line-height: 63vmin;
   text-align: center;
   overflow: hidden;
   color: yellow;
@@ -66,10 +65,10 @@
   animation-duration: 0.5s;
   animation-fill-mode: both;
   animation-timing-function: ease-in-out;
-  animation-name: fadeIn;
+  animation-name: background__keyframes-fadein;
 }
 
-@keyframes fadeIn {
+@keyframes background__keyframes-fadein {
   0% {
     opacity: 0;
   }
@@ -78,14 +77,14 @@
   }
 }
 
-.fadeout {
+.field__background-fadeout {
   animation-duration: 0.5s;
   animation-fill-mode: both;
   animation-timing-function: ease-in-out;
-  animation-name: fadeOut;
+  animation-name: background__keyframes-fadeout;
 }
 
-@keyframes fadeOut {
+@keyframes background__keyframes-fadeout {
   0% {
     opacity: 0.07;
   }
@@ -113,7 +112,8 @@
   cursor: pointer;
 }
 
-.cell.mega-swing {
+.cell.mega-swing,
+.options-frame.mega-swing {
   animation-duration: 2s;
   animation-fill-mode: both;
   transform-origin: top center;
@@ -237,200 +237,27 @@
   margin-left: 6vmin;
 }
 
+/****** Animation of the option frame appearance: ******/
 
-/* ====== Human / Device switch ==========*/
-
-.onoffswitch {
-  position: relative;
-  width: 116px;
-  margin-top: 5px;
-  z-index: 2;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
-.onoffswitch-checkbox {
-  display: none;
-}
-
-.onoffswitch-label {
-  display: block;
-  overflow: hidden;
-  cursor: pointer;
-  border: 1px solid #999999;
-  border-radius: 7px;
-}
-
-.onoffswitch-inner {
-  display: block;
-  width: 200%;
-  margin-left: -100%;
-  transition: margin 0.3s ease-in 0s;
-}
-
-.onoffswitch-inner:before,
-.onoffswitch-inner:after {
-  display: block;
-  float: left;
-  width: 50%;
-  height: 21px;
-  padding: 0;
-  line-height: 21px;
-  font-size: 13px;
-  color: white;
-  font-family: Trebuchet, Arial, sans-serif;
-  box-sizing: border-box;
-}
-
-.onoffswitch-inner:before {
-  content: "x - human";
-  padding-left: 17px;
-  background-color: #01162B;
-  color: #EDEDED;
-}
-
-.onoffswitch-inner:after {
-  content: "x - device";
-  padding-right: 17px;
-  background-color: #032951;
-  color: #EDEDED;
-  text-align: right;
-}
-
-.onoffswitch-switch {
-  display: block;
-  width: 15px;
-  margin: 3px;
-  background: #0000FE;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 91px;
-  border: 1px solid #999999;
-  border-radius: 7px;
-  transition: all 0.3s ease-in 0s;
-}
-
-.onoffswitch-checkbox:checked+.onoffswitch-label .onoffswitch-inner {
-  margin-left: 0;
-}
-
-.onoffswitch-checkbox:checked+.onoffswitch-label .onoffswitch-switch {
-  right: 0px;
-}
-
-
-/*  ====== Second button: ======== */
-
-.onoffswitch2 {
-  position: relative;
-  width: 116px;
-  margin-top: 5px;
-  z-index: 2;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
-.onoffswitch2-checkbox {
-  display: none;
-}
-
-.onoffswitch2-label {
-  display: block;
-  overflow: hidden;
-  cursor: pointer;
-  border: 1px solid #999999;
-  border-radius: 7px;
-}
-
-.onoffswitch2-inner {
-  display: block;
-  width: 200%;
-  margin-left: -100%;
-  transition: margin 0.3s ease-in 0s;
-}
-
-.onoffswitch2-inner:before,
-.onoffswitch2-inner:after {
-  display: block;
-  float: left;
-  width: 50%;
-  height: 21px;
-  padding: 0;
-  line-height: 21px;
-  font-size: 13px;
-  color: white;
-  font-family: Trebuchet, Arial, sans-serif;
-  box-sizing: border-box;
-}
-
-.onoffswitch2-inner:before {
-  content: "o - human";
-  padding-left: 17px;
-  background-color: #01162B;
-  color: #EDEDED;
-}
-
-.onoffswitch2-inner:after {
-  content: "o - device";
-  padding-right: 17px;
-  background-color: #032951;
-  color: #EDEDED;
-  text-align: right;
-}
-
-.onoffswitch2-switch {
-  display: block;
-  width: 15px;
-  margin: 3px;
-  background: #FEFE00;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 91px;
-  border: 2px solid #999999;
-  border-radius: 7px;
-  transition: all 0.3s ease-in 0s;
-}
-
-.onoffswitch2-checkbox:checked+.onoffswitch2-label .onoffswitch2-inner {
-  margin-left: 0;
-}
-
-.onoffswitch2-checkbox:checked+.onoffswitch2-label .onoffswitch2-switch {
-  right: 0px;
-}
-
-
-/* ******************************************* */
-
-.options-is-shown .field {
+.options__is-shown .field {
   opacity: 0;
   z-index: -1;
 }
 
-.options-is-shown .options-frame {
+.options__is-shown .options-frame {
   opacity: 1;
-  z-index: 2;
+  z-index: 1;
 }
 
-.options-show {
+.options__animation-show,
+.options__animation-hide {
   animation-duration: 1s;
   animation-fill-mode: both;
   backface-visibility: visible !important;
-  animation-name: options-show;
+  animation-name: options__keyframes-flipshow;
 }
 
-.options-no-show {
-  animation-duration: 1s;
-  animation-fill-mode: both;
-  backface-visibility: visible !important;
-  animation-name: options-show;
-}
-
-@keyframes options-show {
+@keyframes options__keyframes-flipshow {
   0% {
     transform: perspective(400px) rotateX(0deg);
     opacity: 1;
@@ -455,25 +282,27 @@
   }
 }
 
-.options-show .field {
+.options__animation-show .field,
+.options__animation-hide .options-frame {
   animation-duration: 1s;
   animation-fill-mode: both;
   backface-visibility: visible !important;
-  animation-name: options-show-hide;
+  animation-name: options__keyframes-hide;
 }
 
-.options-no-show .field {
+.options__animation-hide .field,
+.options__animation-show .options-frame {
   animation-duration: 1s;
   animation-fill-mode: both;
   backface-visibility: visible !important;
-  animation-name: options-show-display;
+  animation-name: options__keyframes-show;
 }
 
-@keyframes options-show-hide {
+@keyframes options__keyframes-hide {
   45% {
     opacity: 1;
   }
-  50% {
+  49% {
     opacity: 0;
   }
   100% {
@@ -482,21 +311,7 @@
   }
 }
 
-.options-show .options-frame {
-  animation-duration: 1s;
-  animation-fill-mode: both;
-  backface-visibility: visible !important;
-  animation-name: options-show-display;
-}
-
-.options-no-show .options-frame {
-  animation-duration: 1s;
-  animation-fill-mode: both;
-  backface-visibility: visible !important;
-  animation-name: options-show-hide;
-}
-
-@keyframes options-show-display {
+@keyframes options__keyframes-show {
   45% {
     opacity: 0;
   }
@@ -509,16 +324,98 @@
   }
 }
 
+
+/******** Form ************/
+
+.options-form__fieldset {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.options-form__control {
+  height: 26px;
+  padding: 3px 6px;
+  font-size: 12px;
+  background-color: transparent;
+  color: #808E9E;
+  margin-left: 3vmin;
+  background-image: none;
+  border-radius: 4px;
+}
+
+.options-form__legend {
+  width: 80%;
+  padding: 6vmin 0 6px 0;
+  margin-bottom: 10vmin;
+  font-size: 21px;
+  color: #6C7A89;
+  border: 0;
+  border-bottom: 1px solid #0F3C5B;
+  text-align: center;
+}
+
+.options-form__row {
+  margin-bottom: 3vmin;
+}
+
+.options-form__label {
+  padding-top: 5px;
+  margin-bottom: 0;
+  text-align: right;
+  width: 37vmin;
+  float: left;
+}
+
+.options-form__control option {
+  color: #6F7E8D;
+  background: #011A35;
+}
+
+.options-form__btn {
+  display: inline-block;
+  cursor: pointer;
+  opacity: 0.7;
+  z-index: 1;
+  -webkit-border-radius: 5;
+  -moz-border-radius: 5;
+  border-radius: 5px;
+  text-shadow: 2px 2px 2px #666666;
+  padding: 7px 12px 7px 12px;
+  border: solid #1f628d 1px;
+  text-decoration: none;
+  margin: 0 1vmin 0 1vmin;
+  background-color: transparent;
+  color: #dfe7f0;
+}
+
+.options-form__row.buttons {
+  margin-top: 5vmin;
+  text-align: center;
+  width: 100%;
+  display: inline-block;
+}
+
+
 /****** Mobile adaptation: *******/
 
 @media only screen and (min-width: 840px) {
-  .options-button:hover {
+  .options-button:hover,
+  .options-form__btn:hover {
     opacity: 0.85;
+  }
+  .options-form__label {
+    width: 39vmin;
   }
 }
 
 @media only screen and (max-width: 840px) {
-  .options-button:active {
+  .options-button:active,
+  .options-form__btn:active {
     opacity: 0.85;
+  }
+  .options-form__label {
+    width: 37vmin;
   }
 }

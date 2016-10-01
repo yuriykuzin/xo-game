@@ -2,20 +2,21 @@
 
   'use strict';
 
-  var isHumanX = true;
-  var isHumanO = true;
+  var Shake = require('shake.js');
+  var XoGameEngine = require('./xo-game-engine');
 
-  var nextTurnIsX;
+  var isHumanX = false;
+  var isHumanO = true;
+  var isGameActive = false;
+  var isProcessing = false;
+  var isNextTurnByX = true;
+  var whoGoesFirst = 'x';
+
   var backField;
   var fieldElement;
   var boardElement;
-  var isGameActive;
-  var isProcessing;
-  var isOptionsShown = false;
   var optionsBtn;
-
-  var Shake = require('shake.js');
-  var XoGameEngine = require('./xo-game-engine');
+  var optionsFrame;
 
   // creating field 3x3 for collecting 3 items
   var myGameEngine = new XoGameEngine(3, 3, 3);
@@ -23,16 +24,13 @@
   window.onload = function() {
     fieldElement = document.querySelector('.field');
     boardElement = document.querySelector('.board');
+    optionsFrame = document.querySelector('.options-frame');
     fieldElement.addEventListener('click', clickHandler, false);
-    document.querySelector('#myonoffswitch').addEventListener('click', function() {
-      isHumanX = !isHumanX;
-    }, false);
-    document.querySelector('#myonoffswitch2').addEventListener('click', function() {
-      isHumanO = !isHumanO;
-    }, false);
+    optionsFrame.querySelector('.options-form').addEventListener('click', submitOptionsHandler, false);
     optionsBtn = document.querySelector('.options-button');
     optionsBtn.addEventListener('click', showOptions, false);
     fieldElement.addEventListener('click', clickHandler, false);
+
     initGame();
 
     var myShakeEvent = new Shake({
@@ -43,40 +41,64 @@
     window.addEventListener('shake', shakeEventDidOccur, false);
   };
 
-  function showOptions() {
-    fieldElement.classList.remove('field-start-animation');
-    if (boardElement.classList.contains('options-is-shown')) {
-      boardElement.classList.add('options-no-show');
+  function submitOptionsHandler(e) {
+    e.preventDefault();
+    if (e.target.id === 'newGameBtn' || e.target.id === 'continueBtn') {
+      isHumanX = (document.forms[0].elements.isHumanX.value === 'true');
+      isHumanO = (document.forms[0].elements.isHumanO.value === 'true');
+      whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
+      showOptions();
       setTimeout(function() {
-        boardElement.classList.remove('options-is-shown');
-        boardElement.classList.remove('options-no-show');
+        document.removeEventListener('click', restartClickHandler, false);
+        if (e.target.id === 'newGameBtn') restartGame(false); 
+        else if (!isHumanX) turnHandler();
+      }, 500);
+
+    }
+    return false;
+  }
+
+  function showOptions() {
+    fieldElement.classList.remove('field__start-animation');
+    if (boardElement.classList.contains('options__is-shown')) {
+      boardElement.classList.add('options__animation-hide');
+      setTimeout(function() {
+        boardElement.classList.remove('options__is-shown');
+        boardElement.classList.remove('options__animation-hide');
       }, 1200);
     }
     else {
-      boardElement.classList.add('options-show');
+      boardElement.classList.add('options__animation-show');
       setTimeout(function() {
-        boardElement.classList.add('options-is-shown');
-        boardElement.classList.remove('options-show');
+        boardElement.classList.add('options__is-shown');
+        boardElement.classList.remove('options__animation-show');
       }, 1200);
     }
-    isOptionsShown = !isOptionsShown;
   }
 
   function shakeEventDidOccur() {
     var elems = document.querySelectorAll('.cell');
     var delay;
-    for (var i = 0; i < elems.length; i++) {
-      if (!elems[i].classList.contains('mega-swing')) {
-        delay = Math.random() * 800;
-        (function(elem, delay) {
-          setTimeout(function() {
-            elem.classList.add('mega-swing');
-          }, delay);
-          setTimeout(function() {
-            elem.classList.remove('mega-swing');
-          }, delay + 2000);
-        })(elems[i], delay);
+    if (!boardElement.classList.contains('options__is-shown')) {
+      for (var i = 0; i < elems.length; i++) {
+        if (!elems[i].classList.contains('mega-swing')) {
+          delay = Math.random() * 800;
+          (function(elem, delay) {
+            setTimeout(function() {
+              elem.classList.add('mega-swing');
+            }, delay);
+            setTimeout(function() {
+              elem.classList.remove('mega-swing');
+            }, delay + 2100);
+          })(elems[i], delay);
+        }
       }
+    }
+    else if (!optionsFrame.classList.contains('mega-swing')) {
+      optionsFrame.classList.add('mega-swing');
+      setTimeout(function() {
+        optionsFrame.classList.remove('mega-swing');
+      }, 2100);
     }
   }
 
@@ -94,9 +116,11 @@
     newElement.innerHTML = 'x';
     fragment.appendChild(newElement);
     fieldElement.appendChild(fragment);
-    nextTurnIsX = true;
     backField = document.querySelector('.field__background');
     myGameEngine.start();
+    if (whoGoesFirst === 'random') isNextTurnByX = !!Math.round(Math.random());
+    else isNextTurnByX = (whoGoesFirst === 'x');
+    newElement.innerHTML = (isNextTurnByX) ? 'x' : 'o';
     isGameActive = true;
     isProcessing = false;
     if (!isHumanX) turnHandler();
@@ -105,11 +129,9 @@
   function clickHandler(e) {
     e.preventDefault();
     var elem = document.elementFromPoint(e.clientX, e.clientY);
-    if (!elem.classList.contains('cell')) return;
-    if (isProcessing) return;
-    else isProcessing = true;
-    if (isGameActive && elem.classList.contains('empty')) {
-      if (nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO) turnHandler(elem);
+    if (!isProcessing && isGameActive && elem.classList.contains('empty')) {
+      isProcessing = true;
+      if (isNextTurnByX && isHumanX || !isNextTurnByX && isHumanO) turnHandler(elem);
       else turnHandler();
     }
   }
@@ -124,7 +146,7 @@
     else turnRes = myGameEngine.makeTurn(Number(elem.id.slice(4, elem.id.indexOf('_'))),
       Number(elem.id.slice(elem.id.indexOf('_') + 1)));
     elem.classList.remove('empty');
-    if (nextTurnIsX) {
+    if (isNextTurnByX) {
       elem.classList.add('x-cell');
       elem.innerHTML = 'x';
     }
@@ -143,7 +165,7 @@
       }
     }
     else if (turnRes.status === 'draw') {
-      backField.classList.add('fadeout');
+      backField.classList.add('field__background-fadeout');
     }
 
     if (turnRes.status === 'draw' || turnRes.status === 'victory') {
@@ -158,35 +180,38 @@
         1500);
     }
     else {
-      nextTurnIsX = !nextTurnIsX;
-      fadeBackground(backField);
+      isNextTurnByX = !isNextTurnByX;
+      fadeBackground();
     }
 
-    if (isGameActive && !(nextTurnIsX && isHumanX || !nextTurnIsX && isHumanO))
+    if (isGameActive && !(isNextTurnByX && isHumanX || !isNextTurnByX && isHumanO))
       setTimeout(turnHandler, Math.random() * 1000 + 1500);
     else isProcessing = false;
   }
 
-  function restartClickHandler(e) {
-    if (document.elementFromPoint(e.clientX, e.clientY).className === 'options-button' ||
-      boardElement.classList.contains('options-is-shown')) return;
-    document.removeEventListener('click', restartClickHandler, false);
-    fadeBackground(fieldElement, 100);
-    fieldElement.classList.add('field-start-animation');
-    fieldElement.classList.remove('field-fadeout');
+  function restartGame(isWithAnimation) {
+    if (isWithAnimation) {
+      fieldElement.classList.add('field__start-animation');
+    }
     while (fieldElement.firstChild) {
       fieldElement.removeChild(fieldElement.firstChild);
     }
     initGame();
   }
 
-  function fadeBackground(element, ms) {
-    var time = ms || 500;
-    element.classList.add('fadeout');
+  function restartClickHandler(e) {
+    if (document.elementFromPoint(e.clientX, e.clientY).className === 'options-button' ||
+      boardElement.classList.contains('options__is-shown')) return;
+    document.removeEventListener('click', restartClickHandler, false);
+    restartGame(true);
+  }
+
+  function fadeBackground() {
+    backField.classList.add('field__background-fadeout');
     setTimeout(function() {
-      if (element === backField) element.innerHTML = (nextTurnIsX) ? 'x' : 'o';
-      element.classList.remove('fadeout');
-    }, time);
+      backField.innerHTML = (isNextTurnByX) ? 'x' : 'o';
+      backField.classList.remove('field__background-fadeout');
+    }, 500);
   }
 
 }();
