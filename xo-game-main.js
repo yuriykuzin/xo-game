@@ -5,12 +5,19 @@
   var Shake = require('shake.js');
   var XoGameEngine = require('./xo-game-engine');
 
-  var isHumanX = false;
-  var isHumanO = true;
-  var isGameActive = false;
+  var isJustLoaded = true;
   var isProcessing = false;
-  var isNextTurnByX = true;
-  var whoGoesFirst = 'x';
+
+  var gameSettings = {
+    isHumanX: false,
+    isHumanO: true,
+    isGameActive: false,
+    isNextTurnByX: true,
+    whoGoesFirst: 'x',
+    sizeX: 3,
+    sizeY: 3,
+    winCondition: 3
+  };
 
   var backField;
   var fieldElement;
@@ -44,14 +51,15 @@
   function submitOptionsHandler(e) {
     e.preventDefault();
     if (e.target.id === 'newGameBtn' || e.target.id === 'continueBtn') {
-      isHumanX = (document.forms[0].elements.isHumanX.value === 'true');
-      isHumanO = (document.forms[0].elements.isHumanO.value === 'true');
-      whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
+      gameSettings.isHumanX = document.forms[0].elements.isHumanX.value === 'true';
+      gameSettings.isHumanO = document.forms[0].elements.isHumanO.value === 'true';
+      gameSettings.whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
+      saveSettingsToLocal();
       showOptions();
       setTimeout(function() {
         document.removeEventListener('click', restartClickHandler, false);
-        if (e.target.id === 'newGameBtn') restartGame(false); 
-        else if (!isHumanX) turnHandler();
+        if (e.target.id === 'newGameBtn') restartGame(false);
+        else turnHandler();
       }, 500);
 
     }
@@ -68,6 +76,9 @@
       }, 1200);
     }
     else {
+      document.forms[0].elements.isHumanX.value = gameSettings.isHumanX;
+      document.forms[0].elements.isHumanO.value = gameSettings.isHumanO;
+      document.forms[0].elements.whoGoesFirst.value = gameSettings.whoGoesFirst;
       boardElement.classList.add('options__animation-show');
       setTimeout(function() {
         boardElement.classList.add('options__is-shown');
@@ -102,9 +113,52 @@
     }
   }
 
+  /* global localStorage */
+
+  function loadFromLocal() {
+    var loadTurns;
+    var loadTurn;
+    var turns = {};
+    var elem;
+    var letter;
+    for (var key in gameSettings) {
+      if (localStorage[key] !== undefined) {
+        gameSettings[key] = (key === 'whoGoesFirst') ? localStorage[key] : JSON.parse(localStorage[key]);
+      }
+      else {
+        localStorage.clear();
+        return false;
+      }
+    }
+    if (localStorage.turns) {
+      loadTurns = localStorage.turns.split('/');
+      if (loadTurns.length < 1) return false;
+      for (var i = loadTurns.length; i--;) {
+        loadTurn = loadTurns[i].split('_');
+        if (loadTurn.length !== 3) return false;
+        turns[loadTurn[0]] = {};
+        turns[loadTurn[0]].isByFirstPlayer = Boolean(loadTurn[1]);
+        turns[loadTurn[0]].values = loadTurn[2].split(',');
+        elem = document.querySelector('#cell' +
+          loadTurn[0].slice(0, loadTurn[0].indexOf(';')) + '_' + loadTurn[0].slice(loadTurn[0].indexOf(';') + 1));
+        letter = (loadTurn[1] === '0') ? 'o' : 'x';
+        elem.classList.add(letter + '-cell');
+        elem.innerHTML = letter;
+      }
+    }
+    return turns;
+  }
+  
+  function saveSettingsToLocal() {
+    for (var key in gameSettings) {
+        localStorage[key] = gameSettings[key];
+      }
+  }
+
   function initGame() {
     var fragment = document.createDocumentFragment();
     var newElement;
+    var loadedTurns;
     for (var i = 0; i < 9; i++) {
       newElement = document.createElement('div');
       newElement.className = 'cell empty';
@@ -113,30 +167,45 @@
     }
     newElement = document.createElement('div');
     newElement.className = 'field__background';
-    newElement.innerHTML = 'x';
     fragment.appendChild(newElement);
     fieldElement.appendChild(fragment);
     backField = document.querySelector('.field__background');
-    myGameEngine.start();
-    if (whoGoesFirst === 'random') isNextTurnByX = !!Math.round(Math.random());
-    else isNextTurnByX = (whoGoesFirst === 'x');
-    newElement.innerHTML = (isNextTurnByX) ? 'x' : 'o';
-    isGameActive = true;
+
+    if (isJustLoaded && localStorage.length >= 8) {
+      loadedTurns = loadFromLocal();
+    }
+    
+    if (!loadedTurns) {
+      // Starting new game
+      gameSettings.isGameActive = true;
+      saveSettingsToLocal();
+      if (gameSettings.whoGoesFirst === 'random') gameSettings.isNextTurnByX = !!Math.round(Math.random());
+      else gameSettings.isNextTurnByX = (gameSettings.whoGoesFirst === 'x');
+      localStorage.removeItem('turns');
+    }
+
+    myGameEngine.start(gameSettings, loadedTurns);
+    isJustLoaded = false;
+    backField.innerHTML = (gameSettings.isNextTurnByX) ? 'x' : 'o';
     isProcessing = false;
-    if (!isHumanX) turnHandler();
+    turnHandler();
   }
 
   function clickHandler(e) {
     e.preventDefault();
     var elem = document.elementFromPoint(e.clientX, e.clientY);
-    if (!isProcessing && isGameActive && elem.classList.contains('empty')) {
+    if (!isProcessing && gameSettings.isGameActive && elem.classList.contains('empty')) {
       isProcessing = true;
-      if (isNextTurnByX && isHumanX || !isNextTurnByX && isHumanO) turnHandler(elem);
-      else turnHandler();
+      if (checkIfDeviceMove()) {
+        turnHandler();
+      } else {
+        turnHandler(elem);
+      }
     }
   }
 
   function turnHandler(elem) {
+    if (elem === undefined && !checkIfDeviceMove()) return;
     var turnRes;
     isProcessing = true;
     if (elem === undefined) {
@@ -146,7 +215,7 @@
     else turnRes = myGameEngine.makeTurn(Number(elem.id.slice(4, elem.id.indexOf('_'))),
       Number(elem.id.slice(elem.id.indexOf('_') + 1)));
     elem.classList.remove('empty');
-    if (isNextTurnByX) {
+    if (gameSettings.isNextTurnByX) {
       elem.classList.add('x-cell');
       elem.innerHTML = 'x';
     }
@@ -173,20 +242,34 @@
       for (var i = 0; i < elems.length; i++) {
         elems[i].classList.add('cell-fadeout');
       }
-      isGameActive = false;
+      gameSettings.isGameActive = false;
+      localStorage.removeItem('turns');
       setTimeout(function() {
           document.addEventListener('click', restartClickHandler, false);
         },
         1500);
     }
     else {
-      isNextTurnByX = !isNextTurnByX;
+      gameSettings.isNextTurnByX = !gameSettings.isNextTurnByX;
       fadeBackground();
+
+      // Save turn to the localStorage:
+      if (!localStorage.turns) localStorage.turns = '';
+      else localStorage.turns += '/';
+      localStorage.turns += turnRes.x + ';' + turnRes.y + '_' +
+        Number(!gameSettings.isNextTurnByX) + '_' + turnRes.values.join(',');
+      localStorage.isNextTurnByX = gameSettings.isNextTurnByX;
     }
 
-    if (isGameActive && !(isNextTurnByX && isHumanX || !isNextTurnByX && isHumanO))
+    if (gameSettings.isGameActive && checkIfDeviceMove()) {
       setTimeout(turnHandler, Math.random() * 1000 + 1500);
-    else isProcessing = false;
+    } else {
+      isProcessing = false;
+    }
+  }
+  
+  function checkIfDeviceMove() {
+    return (gameSettings.isNextTurnByX && !gameSettings.isHumanX || !gameSettings.isNextTurnByX && !gameSettings.isHumanO);
   }
 
   function restartGame(isWithAnimation) {
@@ -209,7 +292,7 @@
   function fadeBackground() {
     backField.classList.add('field__background-fadeout');
     setTimeout(function() {
-      backField.innerHTML = (isNextTurnByX) ? 'x' : 'o';
+      backField.innerHTML = (gameSettings.isNextTurnByX) ? 'x' : 'o';
       backField.classList.remove('field__background-fadeout');
     }, 500);
   }

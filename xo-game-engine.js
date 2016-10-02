@@ -8,8 +8,8 @@
  *   More details about m,n,k - games:
  *   https://en.wikipedia.org/wiki/M,n,k-game
  */
- 
-function XoGameEngine(sizeX, sizeY, winCondition) {
+
+function XoGameEngine() {
 
   var vectors = [
     [-1, -1, 1, 1],
@@ -23,9 +23,17 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
   var winArray = [];
   var isVictory = false;
 
-  this.start = function start() {
-    turns = {};
-    currentPlayerIsFirst = true;
+  var sizeX;
+  var sizeY;
+  var winCondition;
+
+  this.start = function start(settings, loadedTurns) {
+    sizeX = settings.sizeX;
+    sizeY = settings.sizeY;
+    winCondition = settings.winCondition;
+    currentPlayerIsFirst = settings.isNextTurnByX;
+    if (loadedTurns) turns = loadedTurns;
+    else turns = {};
     winArray = [];
     isVictory = false;
   };
@@ -39,11 +47,11 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
       res.status = 'error';
       return res;
     }
-    
-    // true means - let's also SET new calculated values to every proper cell
-    var newValues = calculateValues(x, y, currentPlayerIsFirst, true);
 
-    if (Math.max.apply(null, newValues) >= winCondition) {
+    // true means - let's also SET new calculated values to every proper cell
+    res.values = calculateValues(x, y, currentPlayerIsFirst, true);
+
+    if (Math.max.apply(null, res.values) >= winCondition) {
       winArray.push([x, y]);
       isVictory = true;
     }
@@ -53,7 +61,7 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
       res.winArray = winArray;
       res.winnerIsFirst = currentPlayerIsFirst;
       return res;
-    };
+    }
 
     if (Object.keys(turns).length === sizeX * sizeY) {
       res.status = 'draw';
@@ -67,8 +75,8 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
 
   this.makeComputedTurn = function() {
     var bestTurn = {
-      x: Math.round(Math.random() * (sizeX-1)),
-      y: Math.round(Math.random() * (sizeY-1)),
+      x: Math.round(Math.random() * (sizeX - 1)),
+      y: Math.round(Math.random() * (sizeY - 1)),
       score: 3
     };
     var candidates = {};
@@ -80,10 +88,10 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
           newTurn = {};
           newTurn.x = vectors[i][j] + parseInt(turn.split(';')[0], 10);
           newTurn.y = vectors[i][j + 1] + parseInt(turn.split(';')[1], 10);
-          if (newTurn.x < 0 || newTurn.y < 0 || newTurn.x >= sizeX 
-            || newTurn.y >= sizeY || (('' + newTurn.x + ';' + newTurn.y) in turns)
-            || (('' + newTurn.x + ';' + newTurn.y) in candidates)) continue;
-          
+          if (newTurn.x < 0 || newTurn.y < 0 || newTurn.x >= sizeX ||
+            newTurn.y >= sizeY || (('' + newTurn.x + ';' + newTurn.y) in turns) ||
+            (('' + newTurn.x + ';' + newTurn.y) in candidates)) continue;
+
           // false means 'only calculate without setting' 
           newTurn.values = calculateValues(newTurn.x, newTurn.y, currentPlayerIsFirst, false);
           if (Math.max.apply(null, newTurn.values) >= winCondition) return this.makeTurn(newTurn.x, newTurn.y);
@@ -113,7 +121,7 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
     if (!(('' + x + ';' + y) in turns)) return 0;
     var res = turns['' + x + ';' + y];
     if (res.isByFirstPlayer === isByFirstPlayer) {
-      return res.values[directionId];
+      return Number(res.values[directionId]);
     }
     else return 0;
   }
@@ -131,7 +139,7 @@ function XoGameEngine(sizeX, sizeY, winCondition) {
       }
     }
     if (isAlsoSet) {
-      turns[('' + x + ';' + y)] = {
+      turns[x + ';' + y] = {
         isByFirstPlayer: currentPlayerIsFirst,
         values: newValues,
       };
