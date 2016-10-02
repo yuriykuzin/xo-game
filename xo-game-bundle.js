@@ -169,10 +169,12 @@
 	    var letter;
 	    for (var key in gameSettings) {
 	      if (localStorage[key] !== undefined) {
-	        console.log(key);
 	        gameSettings[key] = (key === 'whoGoesFirst') ? localStorage[key] : JSON.parse(localStorage[key]);
 	      }
-	      else return false;
+	      else {
+	        localStorage.clear();
+	        return false;
+	      }
 	    }
 	    if (localStorage.turns) {
 	      loadTurns = localStorage.turns.split('/');
@@ -215,10 +217,11 @@
 	    fieldElement.appendChild(fragment);
 	    backField = document.querySelector('.field__background');
 
-	    if (isJustLoaded && localStorage.turns) {
+	    if (isJustLoaded && localStorage.length >= 8) {
 	      loadedTurns = loadFromLocal();
 	    }
-	    else {
+	    
+	    if (!loadedTurns) {
 	      // Starting new game
 	      gameSettings.isGameActive = true;
 	      saveSettingsToLocal();
