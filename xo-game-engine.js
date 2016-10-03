@@ -37,6 +37,19 @@ function XoGameEngine() {
     winArray = [];
     isVictory = false;
   };
+  
+  this.turnsToString = function () {
+    var resArr = [];
+    var resArrTurn;
+    for (var key in turns) {
+      resArrTurn = [];
+      resArrTurn.push(key);
+      resArrTurn.push(Number(turns[key].isByFirstPlayer));
+      resArrTurn.push(turns[key].values.join(','));
+      resArr.push(resArrTurn.join('_'));
+    }
+    return resArr.join('/');
+  }
 
   this.makeTurn = function makeTurn(x, y) {
     var res = {
@@ -70,6 +83,7 @@ function XoGameEngine() {
 
     currentPlayerIsFirst = !currentPlayerIsFirst;
     res.status = 'ok';
+    
     return res;
   };
 

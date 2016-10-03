@@ -137,8 +137,11 @@
         loadTurn = loadTurns[i].split('_');
         if (loadTurn.length !== 3) return false;
         turns[loadTurn[0]] = {};
-        turns[loadTurn[0]].isByFirstPlayer = Boolean(loadTurn[1]);
+        turns[loadTurn[0]].isByFirstPlayer = (loadTurn[1] === '1');
         turns[loadTurn[0]].values = loadTurn[2].split(',');
+        turns[loadTurn[0]].values.forEach(function (item, i, arr) {
+          arr[i] = Number(item);
+        });
         elem = document.querySelector('#cell' +
           loadTurn[0].slice(0, loadTurn[0].indexOf(';')) + '_' + loadTurn[0].slice(loadTurn[0].indexOf(';') + 1));
         letter = (loadTurn[1] === '0') ? 'o' : 'x';
@@ -256,8 +259,7 @@
       // Save turn to the localStorage:
       if (!localStorage.turns) localStorage.turns = '';
       else localStorage.turns += '/';
-      localStorage.turns += turnRes.x + ';' + turnRes.y + '_' +
-        Number(!gameSettings.isNextTurnByX) + '_' + turnRes.values.join(',');
+      localStorage.turns = myGameEngine.turnsToString();
       localStorage.isNextTurnByX = gameSettings.isNextTurnByX;
     }
 
