@@ -5,27 +5,30 @@
   <title>XO-game</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
   <link rel="stylesheet" type="text/css" href="xo-game-main.css">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/classlist/2014.01.31/classList.min.js"></script>
+  <script type="text/javascript" src="xo-game-bundle.js"></script>
 </head>
 
 <body class="page">
-  
+
   <div class="options-button">Options</div>
-  
+
   <div class="board">
-    
-    <div class="field field-start-animation"></div>
-    
+
+    <div class="field field__start-animation"></div>
+
     <div class="options-frame">
       <form class="options-form">
         <fieldset class="options-form__fieldset">
 
-          <legend class="options-form__legend">Options</legend>
+          <div class="options-form__row">
+            <legend class="options-form__legend">Options</legend>
+          </div>
 
           <div class="options-form__row">
             <label class="options-form__label" for="isHumanX">Player X</label>
-              <select id="isHumanX" name="isHumanX" class="options-form__control">
+            <select id="isHumanX" name="isHumanX" class="options-form__control">
                 <option value="true">Human</option>
                 <option value="false" selected>Device</option>
               </select>
@@ -33,7 +36,7 @@
 
           <div class="options-form__row">
             <label class="options-form__label" for="isHumanO">Player O</label>
-              <select id="isHumanO" name="isHumanO" class="options-form__control">
+            <select id="isHumanO" name="isHumanO" class="options-form__control">
                 <option value="true" selected>Human</option>
                 <option value="false">Device</option>
               </select>
@@ -41,7 +44,7 @@
 
           <div class="options-form__row">
             <label class="options-form__label" for="whoGoesFirst">Goes First</label>
-              <select id="whoGoesFirst" name="whoGoesFirst" class="options-form__control">
+            <select id="whoGoesFirst" name="whoGoesFirst" class="options-form__control">
                 <option value="x" selected>Player X</option>
                 <option value="o">Player O</option>
                 <option value="random">Random</option>
@@ -49,16 +52,21 @@
           </div>
 
           <div class="options-form__row buttons">
-              <button id="newGameBtn" name="newGameBtn" class="options-form__btn">New Game</button>
-              <button id="continueBtn" name="continueBtn" class="options-form__btn">Continue</button>
+            <button id="newGameBtn" name="newGameBtn" class="options-form__btn">New Game</button>
+            <button id="continueBtn" name="continueBtn" class="options-form__btn">Continue</button>
           </div>
 
         </fieldset>
       </form>
     </div>
   </div>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/classlist/2014.01.31/classList.min.js"></script>
-  <script type="text/javascript" src="xo-game-bundle.js"></script>
+
+  <div id="myModal" class="modal">
+    <div class="modal__content">
+      <p class="modal__content__message"></p>
+    </div>
+
+  </div>
 </body>
 
 </html>
