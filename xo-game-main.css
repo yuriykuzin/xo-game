@@ -1,4 +1,5 @@
 .page {
+  background-image: linear-gradient(to bottom, #011428, #032a54);
   background-image: -webkit-linear-gradient(top, #011428, #032a54);
   height: 100vh;
   width: 100vw;
@@ -47,6 +48,17 @@
   animation-duration: 1s;
   animation-fill-mode: both;
   animation-name: fadeInDown;
+}
+
+@keyframes fadeInDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .field__background {
@@ -177,17 +189,6 @@
   }
 }
 
-@keyframes fadeInDown {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .cell-fadeout {
   cursor: default !important;
   animation-duration: 1s;
@@ -236,6 +237,7 @@
   margin-top: 3vmin;
   margin-left: 6vmin;
 }
+
 
 /****** Animation of the option frame appearance: ******/
 
@@ -348,7 +350,8 @@
 .options-form__legend {
   width: 80%;
   padding: 6vmin 0 6px 0;
-  margin-bottom: 10vmin;
+  margin: auto;
+  margin-bottom: 7vmin;
   font-size: 21px;
   color: #6C7A89;
   border: 0;
@@ -395,6 +398,86 @@
   text-align: center;
   width: 100%;
   display: inline-block;
+}
+
+
+/****** Modal window: *******/
+
+.modal {
+  opacity: 0;
+  position: fixed;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.modal__content {
+  background-color: #000000;
+  color: #D0D0E0;
+  opacity: 0.8;
+  margin: 40vh auto;
+  padding: 20px;
+  border: 1px solid #888;
+  border-radius: 7px;
+  box-shadow: 0 4px 8px 0 rgba(250, 250, 250, 0.2), 0 6px 20px 0 rgba(250, 250, 250, 0.19);
+  width: 50vw;
+  text-align: center;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal__animation-show {
+  animation-duration: 1.5s;
+  animation-fill-mode: both;
+  backface-visibility: visible !important;
+  animation-timing-function: ease-in-out;
+  animation-name: modal__keyframes-show;
+}
+
+@keyframes modal__keyframes-show {
+  0% {
+    opacity: 0;
+    z-index: 2;
+  }
+  30% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    z-index: 2;
+  }
+}
+
+.modal__animation-hide {
+  animation-duration: 1.3s;
+  animation-fill-mode: both;
+  backface-visibility: visible !important;
+  animation-timing-function: ease-in-out;
+  animation-name: modal__keyframes-hide;
+}
+
+@keyframes modal__keyframes-hide {
+  0% {
+    opacity: 1;
+    z-index: 2;
+  }
+  99% {
+    opacity: 0;
+    z-index: 2;
+  }
+  100% {
+    z-index: -1;
+  }
 }
 
 

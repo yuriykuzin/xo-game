@@ -76,6 +76,9 @@
 
 	  window.onload = function() {
 	    fieldElement = document.querySelector('.field');
+	    setTimeout(function() {
+	      fieldElement.classList.remove('field__start-animation');
+	    }, 1200);
 	    boardElement = document.querySelector('.board');
 	    optionsFrame = document.querySelector('.options-frame');
 	    fieldElement.addEventListener('click', clickHandler, false);
@@ -94,6 +97,25 @@
 	    window.addEventListener('shake', shakeEventDidOccur, false);
 	  };
 
+	  function showModalMessage(msg) {
+	    var modal = document.getElementById('myModal');
+	    var fnClose = function(e) {
+	      modal.classList.add('modal__animation-hide');
+	      modal.classList.remove('modal__animation-show');
+	      window.removeEventListener('click', fnClose);
+	      
+	      // for browsers which doesn't support css animations:
+	      setTimeout(function () {
+	        modal.style.zIndex = -1;
+	      }, 1500);
+	    };
+	    fieldElement.classList.remove('field__start-animation');
+	    modal.querySelector('.modal__content__message').innerHTML = msg;
+	    modal.classList.add('modal__animation-show');
+	    modal.classList.remove('modal__animation-hide');
+	    window.addEventListener('click', fnClose);
+	  }
+
 	  function submitOptionsHandler(e) {
 	    e.preventDefault();
 	    if (e.target.id === 'newGameBtn' || e.target.id === 'continueBtn') {
@@ -102,11 +124,9 @@
 	      gameSettings.whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
 	      saveSettingsToLocal();
 	      showOptions();
-	      setTimeout(function() {
 	        document.removeEventListener('click', restartClickHandler, false);
 	        if (e.target.id === 'newGameBtn') restartGame(false);
 	        else turnHandler();
-	      }, 500);
 
 	    }
 	    return false;
@@ -185,7 +205,7 @@
 	        turns[loadTurn[0]] = {};
 	        turns[loadTurn[0]].isByFirstPlayer = (loadTurn[1] === '1');
 	        turns[loadTurn[0]].values = loadTurn[2].split(',');
-	        turns[loadTurn[0]].values.forEach(function (item, i, arr) {
+	        turns[loadTurn[0]].values.forEach(function(item, i, arr) {
 	          arr[i] = Number(item);
 	        });
 	        elem = document.querySelector('#cell' +
@@ -197,11 +217,11 @@
 	    }
 	    return turns;
 	  }
-	  
+
 	  function saveSettingsToLocal() {
 	    for (var key in gameSettings) {
-	        localStorage[key] = gameSettings[key];
-	      }
+	      localStorage[key] = gameSettings[key];
+	    }
 	  }
 
 	  function initGame() {
@@ -218,12 +238,14 @@
 	    newElement.className = 'field__background';
 	    fragment.appendChild(newElement);
 	    fieldElement.appendChild(fragment);
+
 	    backField = document.querySelector('.field__background');
 
 	    if (isJustLoaded && localStorage.length >= 8) {
 	      loadedTurns = loadFromLocal();
+	      if (loadedTurns) showModalMessage('Your game settings and turns were loaded from the local storage');
 	    }
-	    
+
 	    if (!loadedTurns) {
 	      // Starting new game
 	      gameSettings.isGameActive = true;
@@ -247,7 +269,8 @@
 	      isProcessing = true;
 	      if (checkIfDeviceMove()) {
 	        turnHandler();
-	      } else {
+	      }
+	      else {
 	        turnHandler(elem);
 	      }
 	    }
@@ -310,12 +333,13 @@
 	    }
 
 	    if (gameSettings.isGameActive && checkIfDeviceMove()) {
-	      setTimeout(turnHandler, Math.random() * 1000 + 1500);
-	    } else {
+	      setTimeout(turnHandler, Math.random() * 600 + 1500);
+	    }
+	    else {
 	      isProcessing = false;
 	    }
 	  }
-	  
+
 	  function checkIfDeviceMove() {
 	    return (gameSettings.isNextTurnByX && !gameSettings.isHumanX || !gameSettings.isNextTurnByX && !gameSettings.isHumanO);
 	  }
@@ -323,6 +347,9 @@
 	  function restartGame(isWithAnimation) {
 	    if (isWithAnimation) {
 	      fieldElement.classList.add('field__start-animation');
+	      setTimeout(function() {
+	        fieldElement.classList.remove('field__start-animation');
+	      }, 1200);
 	    }
 	    while (fieldElement.firstChild) {
 	      fieldElement.removeChild(fieldElement.firstChild);
