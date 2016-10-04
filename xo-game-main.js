@@ -21,22 +21,33 @@
 
   var backField;
   var fieldElement;
+  var boardGameElement;
   var boardElement;
   var optionsBtn;
   var optionsFrame;
+  var myCellStyle;
+  var isContinueEnabled = true;
 
-  // creating field 3x3 for collecting 3 items
-  var myGameEngine = new XoGameEngine(3, 3, 3);
+  var myGameEngine = new XoGameEngine();
 
   window.onload = function() {
+
+    myCellStyle = document.createElement('style');
+    myCellStyle.id = 's_myCellStyle';
+    document.head.appendChild(myCellStyle);
+    myCellStyle = document.getElementById('s_myCellStyle');
+
+    boardGameElement = document.querySelector('.board__game');
     fieldElement = document.querySelector('.field');
     setTimeout(function() {
-      fieldElement.classList.remove('field__start-animation');
+      boardGameElement.classList.remove('boardgame__start-animation');
     }, 1200);
     boardElement = document.querySelector('.board');
     optionsFrame = document.querySelector('.options-frame');
     fieldElement.addEventListener('click', clickHandler, false);
     optionsFrame.querySelector('.options-form').addEventListener('click', submitOptionsHandler, false);
+    optionsFrame.querySelector('.options-form').addEventListener('change', checkIfSizeWinChange, false);
+    backField = document.querySelector('.field__background');
     optionsBtn = document.querySelector('.options-button');
     optionsBtn.addEventListener('click', showOptions, false);
     fieldElement.addEventListener('click', clickHandler, false);
@@ -51,59 +62,98 @@
     window.addEventListener('shake', shakeEventDidOccur, false);
   };
 
+  function checkIfSizeWinChange(e) {
+    if (gameSettings.sizeX !== Number(document.forms[0].elements.sizeX.value) ||
+      gameSettings.sizeY !== Number(document.forms[0].elements.sizeY.value) ||
+      gameSettings.winCondition !== Number(document.forms[0].elements.winCondition.value)) {
+
+      // there was a change of size or win conditions --> disable Continue if enabled
+      if (isContinueEnabled) {
+        isContinueEnabled = false;
+        document.querySelector('#continueBtn').classList.add('btn-disabled');
+      }
+    }
+    else {
+
+      // no change of size or win conditions --> enable Continue if disabled
+      if (!isContinueEnabled) {
+        isContinueEnabled = true;
+        document.querySelector('#continueBtn').classList.remove('btn-disabled');
+      }
+    }
+  }
+
   function showModalMessage(msg) {
     var modal = document.getElementById('myModal');
     var fnClose = function(e) {
       modal.classList.add('modal__animation-hide');
       modal.classList.remove('modal__animation-show');
       window.removeEventListener('click', fnClose);
-      
+      window.removeEventListener('keydown', fnClose);
+
       // for browsers which doesn't support css animations:
-      setTimeout(function () {
+      setTimeout(function() {
         modal.style.zIndex = -1;
       }, 1500);
     };
-    fieldElement.classList.remove('field__start-animation');
+    boardGameElement.classList.remove('boardgame__start-animation');
     modal.querySelector('.modal__content__message').innerHTML = msg;
     modal.classList.add('modal__animation-show');
     modal.classList.remove('modal__animation-hide');
     window.addEventListener('click', fnClose);
+    window.addEventListener('keydown', fnClose);
   }
 
   function submitOptionsHandler(e) {
     e.preventDefault();
-    if (e.target.id === 'newGameBtn' || e.target.id === 'continueBtn') {
-      gameSettings.isHumanX = document.forms[0].elements.isHumanX.value === 'true';
-      gameSettings.isHumanO = document.forms[0].elements.isHumanO.value === 'true';
-      gameSettings.whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
-      saveSettingsToLocal();
+    if (e.target.id === 'newGameBtn' ||
+      (e.target.id === 'continueBtn' && isContinueEnabled)) {
       showOptions();
-        document.removeEventListener('click', restartClickHandler, false);
-        if (e.target.id === 'newGameBtn') restartGame(false);
-        else turnHandler();
-
+      document.removeEventListener('click', restartClickHandler, false);
+      if (e.target.id === 'newGameBtn') {
+        setTimeout(function () {
+          restartGame(false);
+        }, 400);
+      }
+      else turnHandler();
     }
     return false;
   }
 
-  function showOptions() {
-    fieldElement.classList.remove('field__start-animation');
+  function showOptions(e) {
+    boardGameElement.classList.remove('boardgame__start-animation');
     if (boardElement.classList.contains('options__is-shown')) {
+      if (!e || e.target.className !== 'options-button') {
+        
+        // saving changes ii was not a click to 'Options' button:
+        gameSettings.isHumanX = document.forms[0].elements.isHumanX.value === 'true';
+        gameSettings.isHumanO = document.forms[0].elements.isHumanO.value === 'true';
+        gameSettings.whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
+        gameSettings.sizeX = Number(document.forms[0].elements.sizeX.value);
+        gameSettings.sizeY = Number(document.forms[0].elements.sizeY.value);
+        gameSettings.winCondition = Number(document.forms[0].elements.winCondition.value);
+        saveSettingsToLocal();
+      }
       boardElement.classList.add('options__animation-hide');
       setTimeout(function() {
         boardElement.classList.remove('options__is-shown');
         boardElement.classList.remove('options__animation-hide');
-      }, 1200);
+      }, 1400);
     }
     else {
       document.forms[0].elements.isHumanX.value = gameSettings.isHumanX;
       document.forms[0].elements.isHumanO.value = gameSettings.isHumanO;
       document.forms[0].elements.whoGoesFirst.value = gameSettings.whoGoesFirst;
+      document.forms[0].elements.sizeX.value = gameSettings.sizeX;
+      document.forms[0].elements.sizeY.value = gameSettings.sizeY;
+      document.forms[0].elements.winCondition.value = gameSettings.winCondition;
+      isContinueEnabled = true;
+      document.querySelector('#continueBtn').classList.remove('btn-disabled');
       boardElement.classList.add('options__animation-show');
       setTimeout(function() {
         boardElement.classList.add('options__is-shown');
         boardElement.classList.remove('options__animation-show');
-      }, 1200);
+      }, 1400);
     }
   }
 
@@ -135,12 +185,7 @@
 
   /* global localStorage */
 
-  function loadFromLocal() {
-    var loadTurns;
-    var loadTurn;
-    var turns = {};
-    var elem;
-    var letter;
+  function loadSettingsFromLocal() {
     for (var key in gameSettings) {
       if (localStorage[key] !== undefined) {
         gameSettings[key] = (key === 'whoGoesFirst') ? localStorage[key] : JSON.parse(localStorage[key]);
@@ -150,6 +195,15 @@
         return false;
       }
     }
+    return true;
+  }
+
+  function loadTurnsFromLocal() {
+    var loadTurns;
+    var loadTurn;
+    var turns = {};
+    var elem;
+    var letter;
     if (localStorage.turns) {
       loadTurns = localStorage.turns.split('/');
       if (loadTurns.length < 1) return false;
@@ -178,35 +232,75 @@
     }
   }
 
+  function checkIfTicTacToe() {
+    return gameSettings.sizeX === 3 && gameSettings.sizeY === 3 && gameSettings.winCondition === 3;
+  }
+
   function initGame() {
     var fragment = document.createDocumentFragment();
     var newElement;
+    var newRow;
+    var newTable;
     var loadedTurns;
-    for (var i = 0; i < 9; i++) {
-      newElement = document.createElement('div');
-      newElement.className = 'cell empty';
-      newElement.id = 'cell' + (i % 3) + '_' + Math.floor(i / 3);
-      fragment.appendChild(newElement);
-    }
-    newElement = document.createElement('div');
-    newElement.className = 'field__background';
-    fragment.appendChild(newElement);
-    fieldElement.appendChild(fragment);
-
-    backField = document.querySelector('.field__background');
+    var size;
+    var isSettingsLoaded = false;
 
     if (isJustLoaded && localStorage.length >= 8) {
-      loadedTurns = loadFromLocal();
-      if (loadedTurns) showModalMessage('Your game settings and turns were loaded from the local storage');
+      isSettingsLoaded = loadSettingsFromLocal();
     }
 
-    if (!loadedTurns) {
+    if (checkIfTicTacToe()) {
+
+      // TicTacToe game (first version):
+      myCellStyle.textContent = '';
+      for (var i = 0; i < gameSettings.sizeY; i++) {
+        newRow = document.createElement('div');
+        newRow.className = 'field__row';
+        for (var j = 0; j < gameSettings.sizeX; j++) {
+          newElement = document.createElement('div');
+          newElement.className = 'cell empty';
+          newElement.id = 'cell' + j + '_' + i;
+          newRow.appendChild(newElement);
+        }
+        fragment.appendChild(newRow);
+      }
+    }
+    else {
+
+      //  Custom field of any size and win condition:
+      size = 90 / (Math.max(gameSettings.sizeX, gameSettings.sizeY)) 
+        - 140 / Math.min(document.body.clientWidth, document.body.clientHeight);
+      myCellStyle.textContent = '.cell {width: ' + size + 'vmin; height: ' + size +
+        'vmin; font-size: ' + (size) + 'vmin;}';
+      for (var i = 0; i < gameSettings.sizeY; i++) {
+        newRow = document.createElement('div');
+        newRow.className = 'field__row';
+        for (var j = 0; j < gameSettings.sizeX; j++) {
+          newElement = document.createElement('div');
+          newElement.className = 'cell empty custom-cell';
+          newElement.id = 'cell' + j + '_' + i;
+          newElement.style.maxWidth = size + 'vmin';
+          newRow.appendChild(newElement);
+        }
+        fragment.appendChild(newRow);
+      }
+    }
+    newElement = document.createElement('div');
+    /*newElement.className = 'field__background';
+    fragment.appendChild(newElement);*/
+    fieldElement.appendChild(fragment);
+
+    if (!isSettingsLoaded) {
       // Starting new game
       gameSettings.isGameActive = true;
       saveSettingsToLocal();
       if (gameSettings.whoGoesFirst === 'random') gameSettings.isNextTurnByX = !!Math.round(Math.random());
       else gameSettings.isNextTurnByX = (gameSettings.whoGoesFirst === 'x');
       localStorage.removeItem('turns');
+    }
+    else {
+      loadedTurns = loadTurnsFromLocal();
+      showModalMessage('Your game settings and turns were loaded from the local storage');
     }
 
     myGameEngine.start(gameSettings, loadedTurns);
@@ -300,9 +394,9 @@
 
   function restartGame(isWithAnimation) {
     if (isWithAnimation) {
-      fieldElement.classList.add('field__start-animation');
+      boardGameElement.classList.add('boardgame__start-animation');
       setTimeout(function() {
-        fieldElement.classList.remove('field__start-animation');
+        boardGameElement.classList.remove('boardgame__start-animation');
       }, 1200);
     }
     while (fieldElement.firstChild) {
@@ -323,7 +417,7 @@
     setTimeout(function() {
       backField.innerHTML = (gameSettings.isNextTurnByX) ? 'x' : 'o';
       backField.classList.remove('field__background-fadeout');
-    }, 500);
+    }, 800);
   }
 
 }();
