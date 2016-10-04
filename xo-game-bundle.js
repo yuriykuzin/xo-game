@@ -230,6 +230,7 @@
 	        return false;
 	      }
 	    }
+	    return true;
 	  }
 
 	  function loadTurnsFromLocal() {
