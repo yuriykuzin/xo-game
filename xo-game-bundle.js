@@ -67,6 +67,7 @@
 
 	  var backField;
 	  var fieldElement;
+	  var boardGameElement;
 	  var boardElement;
 	  var optionsBtn;
 	  var optionsFrame;
@@ -82,15 +83,17 @@
 	    document.head.appendChild(myCellStyle);
 	    myCellStyle = document.getElementById('s_myCellStyle');
 
+	    boardGameElement = document.querySelector('.board__game');
 	    fieldElement = document.querySelector('.field');
 	    setTimeout(function() {
-	      fieldElement.classList.remove('field__start-animation');
+	      boardGameElement.classList.remove('boardgame__start-animation');
 	    }, 1200);
 	    boardElement = document.querySelector('.board');
 	    optionsFrame = document.querySelector('.options-frame');
 	    fieldElement.addEventListener('click', clickHandler, false);
 	    optionsFrame.querySelector('.options-form').addEventListener('click', submitOptionsHandler, false);
 	    optionsFrame.querySelector('.options-form').addEventListener('change', checkIfSizeWinChange, false);
+	    backField = document.querySelector('.field__background');
 	    optionsBtn = document.querySelector('.options-button');
 	    optionsBtn.addEventListener('click', showOptions, false);
 	    fieldElement.addEventListener('click', clickHandler, false);
@@ -139,7 +142,7 @@
 	        modal.style.zIndex = -1;
 	      }, 1500);
 	    };
-	    fieldElement.classList.remove('field__start-animation');
+	    boardGameElement.classList.remove('boardgame__start-animation');
 	    modal.querySelector('.modal__content__message').innerHTML = msg;
 	    modal.classList.add('modal__animation-show');
 	    modal.classList.remove('modal__animation-hide');
@@ -151,18 +154,20 @@
 	    e.preventDefault();
 	    if (e.target.id === 'newGameBtn' ||
 	      (e.target.id === 'continueBtn' && isContinueEnabled)) {
-
 	      showOptions();
 	      document.removeEventListener('click', restartClickHandler, false);
-	      if (e.target.id === 'newGameBtn') restartGame(false);
+	      if (e.target.id === 'newGameBtn') {
+	        setTimeout(function () {
+	          restartGame(false);
+	        }, 400);
+	      }
 	      else turnHandler();
-
 	    }
 	    return false;
 	  }
 
 	  function showOptions(e) {
-	    fieldElement.classList.remove('field__start-animation');
+	    boardGameElement.classList.remove('boardgame__start-animation');
 	    if (boardElement.classList.contains('options__is-shown')) {
 	      if (!e || e.target.className !== 'options-button') {
 	        
@@ -292,9 +297,8 @@
 
 	    if (checkIfTicTacToe()) {
 
-	      // TicTacToe game (first version)
+	      // TicTacToe game (first version):
 	      myCellStyle.textContent = '';
-
 	      for (var i = 0; i < gameSettings.sizeY; i++) {
 	        newRow = document.createElement('div');
 	        newRow.className = 'field__row';
@@ -306,27 +310,14 @@
 	        }
 	        fragment.appendChild(newRow);
 	      }
-
-	      /*for (var i = 0; i < 9; i++) {
-	        newElement = document.createElement('div');
-	        newElement.className = 'cell empty';
-	        newElement.id = 'cell' + (i % 3) + '_' + Math.floor(i / 3);
-	        fragment.appendChild(newElement);
-	      }*/
 	    }
 	    else {
 
 	      //  Custom field of any size and win condition:
-	      // ...
-	      // temporary:
-	      // localStorage.clear();
-	      // ----------
-
 	      size = 90 / (Math.max(gameSettings.sizeX, gameSettings.sizeY)) 
 	        - 140 / Math.min(document.body.clientWidth, document.body.clientHeight);
 	      myCellStyle.textContent = '.cell {width: ' + size + 'vmin; height: ' + size +
 	        'vmin; font-size: ' + (size) + 'vmin;}';
-
 	      for (var i = 0; i < gameSettings.sizeY; i++) {
 	        newRow = document.createElement('div');
 	        newRow.className = 'field__row';
@@ -341,11 +332,9 @@
 	      }
 	    }
 	    newElement = document.createElement('div');
-	    newElement.className = 'field__background';
-	    fragment.appendChild(newElement);
+	    /*newElement.className = 'field__background';
+	    fragment.appendChild(newElement);*/
 	    fieldElement.appendChild(fragment);
-
-	    backField = document.querySelector('.field__background');
 
 	    if (!isSettingsLoaded) {
 	      // Starting new game
@@ -451,9 +440,9 @@
 
 	  function restartGame(isWithAnimation) {
 	    if (isWithAnimation) {
-	      fieldElement.classList.add('field__start-animation');
+	      boardGameElement.classList.add('boardgame__start-animation');
 	      setTimeout(function() {
-	        fieldElement.classList.remove('field__start-animation');
+	        boardGameElement.classList.remove('boardgame__start-animation');
 	      }, 1200);
 	    }
 	    while (fieldElement.firstChild) {

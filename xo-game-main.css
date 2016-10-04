@@ -8,19 +8,29 @@
   font-family: Arial;
   color: #dfe7f0;
   font-size: 12px;
+  margin: 0;
+  padding: 0;
 }
 
 .board {
   border: 0;
   display: inline-block;
-  /*  width: 90vmin;*/
-  height: 90vmin;
+  min-width: 90vmin;
+  min-height: 90vmin;
+  
   position: absolute;
   top: 50%;
   margin-top: -45vmin;
   left: 50%;
-  margin-left: -43vmin;
-  padding: 0;
+  margin-left: -45vmin;
+}
+
+.board__game {
+  width: 90vmin;
+  height: 90vmin;
+  display: table-cell; 
+  vertical-align: middle;
+  text-align: center;
 }
 
 .options-frame {
@@ -37,14 +47,15 @@
 }
 
 .field {
-  width: 100%;
-  height: 100%;
+  /*width: 100%;
+  height: 100%;*/
   border: 0;
   padding: 0;
   margin: 0;
+  
 }
 
-.field__start-animation {
+.boardgame__start-animation {
   animation-duration: 1s;
   animation-fill-mode: both;
   animation-name: fadeInDown;
@@ -218,7 +229,7 @@
   }
 }
 
-.field-fadeout {
+/*.field-fadeout {
   animation-duration: 3s;
   animation-fill-mode: both;
   animation-timing-function: linear;
@@ -232,10 +243,11 @@
   100% {
     opacity: 0.4;
   }
-}
+}*/
 
 .options-button {
   display: inline-block;
+  position: absolute;
   cursor: pointer;
   opacity: 0.5;
   z-index: 1;
@@ -253,7 +265,7 @@
 
 /****** Animation of the option frame appearance: ******/
 
-.options__is-shown .field {
+.options__is-shown .board__game {
   opacity: 0;
   z-index: -1;
 }
@@ -297,7 +309,7 @@
   }
 }
 
-.options__animation-show .field,
+.options__animation-show .board__game,
 .options__animation-hide .options-frame {
   animation-duration: 1s;
   animation-fill-mode: both;
@@ -306,7 +318,7 @@
   animation-name: options__keyframes-hide;
 }
 
-.options__animation-hide .field,
+.options__animation-hide .board__game,
 .options__animation-show .options-frame {
   animation-duration: 1s;
   animation-fill-mode: both;
@@ -379,6 +391,7 @@
   border: 1px solid;
   border-color: rgb(169, 169, 169);
   box-sizing: border-box;
+  float: left;
 }
 
 .options-form__legend {
