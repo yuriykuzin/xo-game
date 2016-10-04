@@ -322,7 +322,7 @@
 	      // localStorage.clear();
 	      // ----------
 
-	      size = 90 / (Math.max(gameSettings.sizeX, gameSettings.sizeY)) - 120 / document.body.clientWidth;
+	      size = 90 / (Math.max(gameSettings.sizeX, gameSettings.sizeY)) - 140 / document.body.clientWidth;
 	      myCellStyle.textContent = '.cell {width: ' + size + 'vmin; height: ' + size +
 	        'vmin; font-size: ' + (size) + 'vmin;}';
 
