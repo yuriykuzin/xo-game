@@ -106,17 +106,18 @@
 	  };
 
 	  function checkIfSizeWinChange(e) {
-	    if (gameSettings.sizeX !== Number(document.forms[0].elements.sizeX.value)
-	      || gameSettings.sizeY !== Number(document.forms[0].elements.sizeY.value)
-	      || gameSettings.winCondition !== Number(document.forms[0].elements.winCondition.value)) {
-	      
+	    if (gameSettings.sizeX !== Number(document.forms[0].elements.sizeX.value) ||
+	      gameSettings.sizeY !== Number(document.forms[0].elements.sizeY.value) ||
+	      gameSettings.winCondition !== Number(document.forms[0].elements.winCondition.value)) {
+
 	      // there was a change of size or win conditions --> disable Continue if enabled
 	      if (isContinueEnabled) {
 	        isContinueEnabled = false;
 	        document.querySelector('#continueBtn').classList.add('btn-disabled');
 	      }
-	    } else {
-	      
+	    }
+	    else {
+
 	      // no change of size or win conditions --> enable Continue if disabled
 	      if (!isContinueEnabled) {
 	        isContinueEnabled = true;
@@ -148,9 +149,9 @@
 
 	  function submitOptionsHandler(e) {
 	    e.preventDefault();
-	    if (e.target.id === 'newGameBtn' 
-	      || (e.target.id === 'continueBtn' && isContinueEnabled)) {
-	        
+	    if (e.target.id === 'newGameBtn' ||
+	      (e.target.id === 'continueBtn' && isContinueEnabled)) {
+
 	      showOptions();
 	      document.removeEventListener('click', restartClickHandler, false);
 	      if (e.target.id === 'newGameBtn') restartGame(false);
@@ -160,16 +161,20 @@
 	    return false;
 	  }
 
-	  function showOptions() {
+	  function showOptions(e) {
 	    fieldElement.classList.remove('field__start-animation');
 	    if (boardElement.classList.contains('options__is-shown')) {
-	      gameSettings.isHumanX = document.forms[0].elements.isHumanX.value === 'true';
-	      gameSettings.isHumanO = document.forms[0].elements.isHumanO.value === 'true';
-	      gameSettings.whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
-	      gameSettings.sizeX = Number(document.forms[0].elements.sizeX.value);
-	      gameSettings.sizeY = Number(document.forms[0].elements.sizeY.value);
-	      gameSettings.winCondition = Number(document.forms[0].elements.winCondition.value);
-	      saveSettingsToLocal();
+	      if (!e || e.target.className !== 'options-button') {
+	        
+	        // saving changes ii was not a click to 'Options' button:
+	        gameSettings.isHumanX = document.forms[0].elements.isHumanX.value === 'true';
+	        gameSettings.isHumanO = document.forms[0].elements.isHumanO.value === 'true';
+	        gameSettings.whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
+	        gameSettings.sizeX = Number(document.forms[0].elements.sizeX.value);
+	        gameSettings.sizeY = Number(document.forms[0].elements.sizeY.value);
+	        gameSettings.winCondition = Number(document.forms[0].elements.winCondition.value);
+	        saveSettingsToLocal();
+	      }
 	      boardElement.classList.add('options__animation-hide');
 	      setTimeout(function() {
 	        boardElement.classList.remove('options__is-shown');
@@ -289,7 +294,7 @@
 
 	      // TicTacToe game (first version)
 	      myCellStyle.textContent = '';
-	      
+
 	      for (var i = 0; i < gameSettings.sizeY; i++) {
 	        newRow = document.createElement('div');
 	        newRow.className = 'field__row';
@@ -300,8 +305,8 @@
 	          newRow.appendChild(newElement);
 	        }
 	        fragment.appendChild(newRow);
-	      }      
-	      
+	      }
+
 	      /*for (var i = 0; i < 9; i++) {
 	        newElement = document.createElement('div');
 	        newElement.className = 'cell empty';
