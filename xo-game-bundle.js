@@ -184,6 +184,7 @@
 	      document.forms[0].elements.sizeY.value = gameSettings.sizeY;
 	      document.forms[0].elements.winCondition.value = gameSettings.winCondition;
 	      isContinueEnabled = true;
+	      document.querySelector('#continueBtn').classList.remove('btn-disabled');
 	      boardElement.classList.add('options__animation-show');
 	      setTimeout(function() {
 	        boardElement.classList.add('options__is-shown');
