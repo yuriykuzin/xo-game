@@ -1,5 +1,5 @@
 # xo-game
-Tic-tac-toe, gomoku and m,n,k-game in general demo
+Tic-tac-toe, Gomoku and M,N,K-game in general demo
 
 Mobile friendly, responsive. Tested on Chrome and Firefox for now.
 
@@ -11,8 +11,8 @@ Some features:
 - validated html5 and css3
 
 Recommended settings to start playing with:
-- classical tic-tac-toe: size 3 x 3, win codition 3
-- freestyle gomoku: size 9 x 9, win condition 5
+- classical Tic-tac-toe: size 3 x 3, win codition 3
+- freestyle Gomoku (Five in a Row): size 15 x 15, win condition 5
 
 Live:
 https://yuriykuzin.github.io/xo-game
