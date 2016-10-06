@@ -19,3 +19,5 @@ https://yuriykuzin.github.io/xo-game
 
 General description of m,n,k-games:
 https://en.wikipedia.org/wiki/M,n,k-game
+
+p.s. "AI" algorythm is not super strong intentionally (to prevent my son from being frustrated by endless losses)
