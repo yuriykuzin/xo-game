@@ -50,9 +50,7 @@
 
 	  var Shake = __webpack_require__(1);
 	  var XoGameEngine = __webpack_require__(2);
-
-	  var isJustLoaded = true;
-	  var isProcessing = false;
+	  var myGameEngine = new XoGameEngine();
 
 	  var gameSettings = {
 	    isHumanX: false,
@@ -65,40 +63,40 @@
 	    winCondition: 3
 	  };
 
-	  var backField;
+	  //  fast access to some DOM elements:
+	  var backFieldElement;
 	  var fieldElement;
 	  var boardGameElement;
 	  var boardElement;
-	  var optionsBtn;
-	  var optionsFrame;
+	  var optionsBtnElement;
+	  var optionsFrameElement;
 	  var myCellStyle;
+	  
 	  var isContinueEnabled = true;
-
-	  var myGameEngine = new XoGameEngine();
+	  var isJustLoaded = true;
+	  var isProcessing = false;
 
 	  window.onload = function() {
-
 	    myCellStyle = document.createElement('style');
 	    myCellStyle.id = 's_myCellStyle';
 	    document.head.appendChild(myCellStyle);
 	    myCellStyle = document.getElementById('s_myCellStyle');
-
 	    boardGameElement = document.querySelector('.board__game');
 	    fieldElement = document.querySelector('.field');
+	    boardElement = document.querySelector('.board');
+	    optionsFrameElement = document.querySelector('.options-frame');    
+	    backFieldElement = document.querySelector('.field__background');
+	    optionsBtnElement = document.querySelector('.options-button');
+	    
 	    setTimeout(function() {
 	      boardGameElement.classList.remove('boardgame__start-animation');
 	    }, 1200);
-	    boardElement = document.querySelector('.board');
-	    optionsFrame = document.querySelector('.options-frame');
+	  
 	    fieldElement.addEventListener('click', clickHandler, false);
-	    optionsFrame.querySelector('.options-form').addEventListener('click', submitOptionsHandler, false);
-	    optionsFrame.querySelector('.options-form').addEventListener('change', checkIfSizeWinChange, false);
-	    backField = document.querySelector('.field__background');
-	    optionsBtn = document.querySelector('.options-button');
-	    optionsBtn.addEventListener('click', showOptions, false);
+	    optionsFrameElement.querySelector('.options-form').addEventListener('click', submitOptionsHandler, false);
+	    optionsFrameElement.querySelector('.options-form').addEventListener('change', checkIfSizeWinChange, false);
+	    optionsBtnElement.addEventListener('click', showOptions, false);
 	    fieldElement.addEventListener('click', clickHandler, false);
-
-	    initGame();
 
 	    var myShakeEvent = new Shake({
 	      threshold: 3,
@@ -106,14 +104,96 @@
 	    });
 	    myShakeEvent.start();
 	    window.addEventListener('shake', shakeEventDidOccur, false);
+	    
+	    initGame();
 	  };
+	  
+	  function initGame() {
+	    var fragment = document.createDocumentFragment();
+	    var isSettingsLoaded = false;
+	    var newElement;
+	    var newRow;
+	    var loadedTurns;
+	    var size;
+	    
+	    if (isJustLoaded && localStorage.length >= 8) {
+	      isSettingsLoaded = loadSettingsFromLocal();
+	    }
 
+	    if (checkIfTicTacToe()) {
+
+	      // TicTacToe game (original version of appearance):
+	      myCellStyle.textContent = '';
+	      for (var i = 0; i < gameSettings.sizeY; i++) {
+	        newRow = document.createElement('div');
+	        newRow.className = 'field__row';
+	        for (var j = 0; j < gameSettings.sizeX; j++) {
+	          newElement = document.createElement('div');
+	          newElement.className = 'cell empty';
+	          newElement.id = 'cell' + j + '_' + i;
+	          newRow.appendChild(newElement);
+	        }
+	        fragment.appendChild(newRow);
+	      }
+	    }
+	    else {
+
+	      /*
+	      *   Custom field of any size and win condition. 
+	      *   Render it with dotted borders and custom size:
+	      */
+	      size = 90 / (Math.max(gameSettings.sizeX, gameSettings.sizeY)) 
+	        - 140 / Math.min(document.body.clientWidth, document.body.clientHeight);
+	      myCellStyle.textContent = '.cell {width: ' + size + 'vmin; height: ' + size +
+	        'vmin; font-size: ' + (size) + 'vmin;}';
+	      for (var i = 0; i < gameSettings.sizeY; i++) {
+	        newRow = document.createElement('div');
+	        newRow.className = 'field__row';
+	        for (var j = 0; j < gameSettings.sizeX; j++) {
+	          newElement = document.createElement('div');
+	          newElement.className = 'cell empty custom-cell';
+	          newElement.id = 'cell' + j + '_' + i;
+	          newElement.style.maxWidth = size + 'vmin';
+	          newRow.appendChild(newElement);
+	        }
+	        fragment.appendChild(newRow);
+	      }
+	    }
+	    fieldElement.appendChild(fragment);
+
+	    if (!isSettingsLoaded) {
+	      
+	      // Starting new game
+	      gameSettings.isGameActive = true;
+	      saveSettingsToLocal();
+	      if (gameSettings.whoGoesFirst === 'random') gameSettings.isNextTurnByX = !!Math.round(Math.random());
+	      else gameSettings.isNextTurnByX = (gameSettings.whoGoesFirst === 'x');
+	      localStorage.removeItem('turns');
+	    }
+	    else {
+	      
+	      // Try to load turns if succeed in loading settings
+	      loadedTurns = loadTurnsFromLocal();
+	      showModalMessage('Your game settings and turns were loaded from the local storage');
+	    }
+	    
+	    backFieldElement.innerHTML = (gameSettings.isNextTurnByX) ? 'x' : 'o';
+	    myGameEngine.start(gameSettings, loadedTurns);
+	    isJustLoaded = false;
+	    isProcessing = false;
+	    turnHandler();
+	  }  
+
+	  /*
+	  *   Handler for checking whether size or win conditions were changed in the settings form
+	  *
+	  */
 	  function checkIfSizeWinChange(e) {
 	    if (gameSettings.sizeX !== Number(document.forms[0].elements.sizeX.value) ||
 	      gameSettings.sizeY !== Number(document.forms[0].elements.sizeY.value) ||
 	      gameSettings.winCondition !== Number(document.forms[0].elements.winCondition.value)) {
-
-	      // there was a change of size or win conditions --> disable Continue if enabled
+	        
+	      // there was a change of size or win conditions --> disable Continue btn if enabled
 	      if (isContinueEnabled) {
 	        isContinueEnabled = false;
 	        document.querySelector('#continueBtn').classList.add('btn-disabled');
@@ -121,7 +201,7 @@
 	    }
 	    else {
 
-	      // no change of size or win conditions --> enable Continue if disabled
+	      // no change of size or win conditions --> enable Continue btn if disabled
 	      if (!isContinueEnabled) {
 	        isContinueEnabled = true;
 	        document.querySelector('#continueBtn').classList.remove('btn-disabled');
@@ -136,12 +216,11 @@
 	      modal.classList.remove('modal__animation-show');
 	      window.removeEventListener('click', fnClose);
 	      window.removeEventListener('keydown', fnClose);
-
-	      // for browsers which doesn't support css animations:
 	      setTimeout(function() {
 	        modal.style.zIndex = -1;
 	      }, 1500);
 	    };
+	    modal.style.zIndex = 2;
 	    boardGameElement.classList.remove('boardgame__start-animation');
 	    modal.querySelector('.modal__content__message').innerHTML = msg;
 	    modal.classList.add('modal__animation-show');
@@ -171,7 +250,7 @@
 	    if (boardElement.classList.contains('options__is-shown')) {
 	      if (!e || e.target.className !== 'options-button') {
 	        
-	        // saving changes ii was not a click to 'Options' button:
+	        // saving changes if it is not a click to 'Options' button:
 	        gameSettings.isHumanX = document.forms[0].elements.isHumanX.value === 'true';
 	        gameSettings.isHumanO = document.forms[0].elements.isHumanO.value === 'true';
 	        gameSettings.whoGoesFirst = document.forms[0].elements.whoGoesFirst.value;
@@ -180,6 +259,8 @@
 	        gameSettings.winCondition = Number(document.forms[0].elements.winCondition.value);
 	        saveSettingsToLocal();
 	      }
+	      
+	      //  Let's switch to "Game board" frame
 	      boardElement.classList.add('options__animation-hide');
 	      setTimeout(function() {
 	        boardElement.classList.remove('options__is-shown');
@@ -187,6 +268,8 @@
 	      }, 1400);
 	    }
 	    else {
+	      
+	      //  Let's switch to "Options" frame
 	      document.forms[0].elements.isHumanX.value = gameSettings.isHumanX;
 	      document.forms[0].elements.isHumanO.value = gameSettings.isHumanO;
 	      document.forms[0].elements.whoGoesFirst.value = gameSettings.whoGoesFirst;
@@ -221,10 +304,10 @@
 	        }
 	      }
 	    }
-	    else if (!optionsFrame.classList.contains('mega-swing')) {
-	      optionsFrame.classList.add('mega-swing');
+	    else if (!optionsFrameElement.classList.contains('mega-swing')) {
+	      optionsFrameElement.classList.add('mega-swing');
 	      setTimeout(function() {
-	        optionsFrame.classList.remove('mega-swing');
+	        optionsFrameElement.classList.remove('mega-swing');
 	      }, 2100);
 	    }
 	  }
@@ -245,9 +328,9 @@
 	  }
 
 	  function loadTurnsFromLocal() {
+	    var turns = {};    
 	    var loadTurns;
 	    var loadTurn;
-	    var turns = {};
 	    var elem;
 	    var letter;
 	    if (localStorage.turns) {
@@ -282,86 +365,16 @@
 	    return gameSettings.sizeX === 3 && gameSettings.sizeY === 3 && gameSettings.winCondition === 3;
 	  }
 
-	  function initGame() {
-	    var fragment = document.createDocumentFragment();
-	    var newElement;
-	    var newRow;
-	    var newTable;
-	    var loadedTurns;
-	    var size;
-	    var isSettingsLoaded = false;
-
-	    if (isJustLoaded && localStorage.length >= 8) {
-	      isSettingsLoaded = loadSettingsFromLocal();
-	    }
-
-	    if (checkIfTicTacToe()) {
-
-	      // TicTacToe game (first version):
-	      myCellStyle.textContent = '';
-	      for (var i = 0; i < gameSettings.sizeY; i++) {
-	        newRow = document.createElement('div');
-	        newRow.className = 'field__row';
-	        for (var j = 0; j < gameSettings.sizeX; j++) {
-	          newElement = document.createElement('div');
-	          newElement.className = 'cell empty';
-	          newElement.id = 'cell' + j + '_' + i;
-	          newRow.appendChild(newElement);
-	        }
-	        fragment.appendChild(newRow);
-	      }
-	    }
-	    else {
-
-	      //  Custom field of any size and win condition:
-	      size = 90 / (Math.max(gameSettings.sizeX, gameSettings.sizeY)) 
-	        - 140 / Math.min(document.body.clientWidth, document.body.clientHeight);
-	      myCellStyle.textContent = '.cell {width: ' + size + 'vmin; height: ' + size +
-	        'vmin; font-size: ' + (size) + 'vmin;}';
-	      for (var i = 0; i < gameSettings.sizeY; i++) {
-	        newRow = document.createElement('div');
-	        newRow.className = 'field__row';
-	        for (var j = 0; j < gameSettings.sizeX; j++) {
-	          newElement = document.createElement('div');
-	          newElement.className = 'cell empty custom-cell';
-	          newElement.id = 'cell' + j + '_' + i;
-	          newElement.style.maxWidth = size + 'vmin';
-	          newRow.appendChild(newElement);
-	        }
-	        fragment.appendChild(newRow);
-	      }
-	    }
-	    newElement = document.createElement('div');
-	    /*newElement.className = 'field__background';
-	    fragment.appendChild(newElement);*/
-	    fieldElement.appendChild(fragment);
-
-	    if (!isSettingsLoaded) {
-	      // Starting new game
-	      gameSettings.isGameActive = true;
-	      saveSettingsToLocal();
-	      if (gameSettings.whoGoesFirst === 'random') gameSettings.isNextTurnByX = !!Math.round(Math.random());
-	      else gameSettings.isNextTurnByX = (gameSettings.whoGoesFirst === 'x');
-	      localStorage.removeItem('turns');
-	    }
-	    else {
-	      loadedTurns = loadTurnsFromLocal();
-	      showModalMessage('Your game settings and turns were loaded from the local storage');
-	    }
-
-	    myGameEngine.start(gameSettings, loadedTurns);
-	    isJustLoaded = false;
-	    backField.innerHTML = (gameSettings.isNextTurnByX) ? 'x' : 'o';
-	    isProcessing = false;
-	    turnHandler();
-	  }
-
+	  /*
+	  *   This handler is fired when user clicks on the cell
+	  *
+	  */
 	  function clickHandler(e) {
 	    e.preventDefault();
 	    var elem = document.elementFromPoint(e.clientX, e.clientY);
 	    if (!isProcessing && gameSettings.isGameActive && elem.classList.contains('empty')) {
 	      isProcessing = true;
-	      if (checkIfDeviceMove()) {
+	      if (checkIfDeviceTurn()) {
 	        turnHandler();
 	      }
 	      else {
@@ -370,8 +383,13 @@
 	    }
 	  }
 
+	  /*
+	  *   This handler is fired by clickHandler or other methods 
+	  *   to calculate device's turn or to process user's one
+	  *
+	  */
 	  function turnHandler(elem) {
-	    if (elem === undefined && !checkIfDeviceMove()) return;
+	    if (elem === undefined && !checkIfDeviceTurn()) return;
 	    var turnRes;
 	    isProcessing = true;
 	    if (elem === undefined) {
@@ -400,7 +418,7 @@
 	      }
 	    }
 	    else if (turnRes.status === 'draw') {
-	      backField.classList.add('field__background-fadeout');
+	      backFieldElement.classList.add('field__background-fadeout');
 	    }
 
 	    if (turnRes.status === 'draw' || turnRes.status === 'victory') {
@@ -426,7 +444,7 @@
 	      localStorage.isNextTurnByX = gameSettings.isNextTurnByX;
 	    }
 
-	    if (gameSettings.isGameActive && checkIfDeviceMove()) {
+	    if (gameSettings.isGameActive && checkIfDeviceTurn()) {
 	      setTimeout(turnHandler, Math.random() * 600 + 1500);
 	    }
 	    else {
@@ -434,8 +452,9 @@
 	    }
 	  }
 
-	  function checkIfDeviceMove() {
-	    return (gameSettings.isNextTurnByX && !gameSettings.isHumanX || !gameSettings.isNextTurnByX && !gameSettings.isHumanO);
+	  function checkIfDeviceTurn() {
+	    return (gameSettings.isNextTurnByX && !gameSettings.isHumanX || 
+	      !gameSettings.isNextTurnByX && !gameSettings.isHumanO);
 	  }
 
 	  function restartGame(isWithAnimation) {
@@ -459,14 +478,15 @@
 	  }
 
 	  function fadeBackground() {
-	    backField.classList.add('field__background-fadeout');
+	    backFieldElement.classList.add('field__background-fadeout');
 	    setTimeout(function() {
-	      backField.innerHTML = (gameSettings.isNextTurnByX) ? 'x' : 'o';
-	      backField.classList.remove('field__background-fadeout');
+	      backFieldElement.innerHTML = (gameSettings.isNextTurnByX) ? 'x' : 'o';
+	      backFieldElement.classList.remove('field__background-fadeout');
 	    }, 800);
 	  }
 
 	}();
+
 
 /***/ },
 /* 1 */
@@ -611,8 +631,8 @@
 	 *   Engine for processing m,n,k-games
 	 *
 	 *   In particular:
-	 *     - tic-tac-toe is the 3,3,3-game 
-	 *     - free-style gomoku is the 19,19,5-game
+	 *     - Tic-tac-toe is the 3,3,3-game 
+	 *     - free-style Gomoku is the 15,15,5-game
 	 *
 	 *   More details about m,n,k - games:
 	 *   https://en.wikipedia.org/wiki/M,n,k-game
@@ -620,6 +640,7 @@
 
 	function XoGameEngine() {
 
+	  //  Possible row orientations
 	  var vectors = [
 	    [-1, -1, 1, 1],
 	    [0, -1, 0, 1],
@@ -627,27 +648,36 @@
 	    [-1, 0, 1, 0]
 	  ];
 
+	  //  Default game settings
+	  var sizeX = 3;
+	  var sizeY = 3;
+	  var winCondition = 3;
+
 	  var turns = {};
 	  var currentPlayerIsFirst = true;
 	  var winArray = [];
 	  var isVictory = false;
 
-	  var sizeX;
-	  var sizeY;
-	  var winCondition;
-
+	  //  Game init method: 
 	  this.start = function start(settings, loadedTurns) {
-	    sizeX = settings.sizeX;
-	    sizeY = settings.sizeY;
-	    winCondition = settings.winCondition;
-	    currentPlayerIsFirst = settings.isNextTurnByX;
-	    if (loadedTurns) turns = loadedTurns;
-	    else turns = {};
+	    if (settings) {
+	      sizeX = settings.sizeX;
+	      sizeY = settings.sizeY;
+	      winCondition = settings.winCondition;
+	      currentPlayerIsFirst = settings.isNextTurnByX;
+	    }
+	    if (loadedTurns) {
+	      turns = loadedTurns;
+	    }
+	    else {
+	      turns = {};
+	    }
 	    winArray = [];
 	    isVictory = false;
 	  };
-	  
-	  this.turnsToString = function () {
+
+	  //  Method for packing turn information (to save to the local storage then)
+	  this.turnsToString = function() {
 	    var resArr = [];
 	    var resArrTurn;
 	    for (var key in turns) {
@@ -692,7 +722,6 @@
 
 	    currentPlayerIsFirst = !currentPlayerIsFirst;
 	    res.status = 'ok';
-	    
 	    return res;
 	  };
 
@@ -700,11 +729,12 @@
 	    var bestTurn = {
 	      x: Math.round(Math.random() * (sizeX - 1)),
 	      y: Math.round(Math.random() * (sizeY - 1)),
-	      score: 3
+	      score: 2
 	    };
 	    var candidates = {};
 	    var newTurn;
 	    var yourValues;
+	    var sumWithPowFn;
 	    for (var turn in turns) {
 	      for (var i = 0; i < 4; i++) {
 	        for (var j = 0; j < 4; j += 2) {
@@ -717,18 +747,22 @@
 
 	          // false means 'only calculate without setting' 
 	          newTurn.values = calculateValues(newTurn.x, newTurn.y, currentPlayerIsFirst, false);
-	          if (Math.max.apply(null, newTurn.values) >= winCondition) return this.makeTurn(newTurn.x, newTurn.y);
+	          if (Math.max.apply(null, newTurn.values) >= winCondition) {
+	            return this.makeTurn(newTurn.x, newTurn.y);
+	          }
+
 	          yourValues = calculateValues(newTurn.x, newTurn.y, !currentPlayerIsFirst, false);
 	          if (Math.max.apply(null, yourValues) >= winCondition) {
 	            newTurn.score = 10000;
 	          }
 	          else {
-	            newTurn.score = newTurn.values.reduce(function(sum, current) {
-	              return sum + current;
-	            }, 0) + yourValues.reduce(function(sum, current) {
-	              return sum + current;
-	            }, 0);
+	            sumWithPowFn = function(sum, current) {
+	              return sum + current * current;
+	            };
+	            newTurn.score = newTurn.values.reduce(sumWithPowFn, 0) +
+	              yourValues.reduce(sumWithPowFn, 0);
 	          }
+
 	          candidates[('' + newTurn.x + ';' + newTurn.y)] = newTurn.score;
 	          if (newTurn.score > bestTurn.score) bestTurn = newTurn;
 	        }
@@ -761,22 +795,29 @@
 	        }
 	      }
 	    }
+
 	    if (isAlsoSet) {
 	      turns[x + ';' + y] = {
 	        isByFirstPlayer: currentPlayerIsFirst,
 	        values: newValues,
 	      };
 	    }
+
 	    return newValues;
 	  }
 
 	  function setValueByVector(x, y, value, directionId, vector) {
 	    var myX = x + vector[0];
 	    var myY = y + vector[1];
-	    if (myX < 0 || myY < 0 || myX >= sizeX || myY >= sizeY || !(('' + myX + ';' + myY) in turns)) return false;
+	    if (myX < 0 || myY < 0 || myX >= sizeX || myY >= sizeY ||
+	      !(('' + myX + ';' + myY) in turns)) {
+	         return false;
+	    }
 	    if (turns['' + myX + ';' + myY].isByFirstPlayer === currentPlayerIsFirst) {
 	      turns['' + myX + ';' + myY].values[directionId] = value;
-	      if (value >= winCondition) winArray.push([myX, myY]);
+	      if (value >= winCondition) {
+	        winArray.push([myX, myY]);
+	      }
 	      setValueByVector(myX, myY, value, directionId, vector);
 	      return true;
 	    }
@@ -785,6 +826,7 @@
 	}
 
 	module.exports = XoGameEngine;
+
 
 /***/ }
 /******/ ]);
