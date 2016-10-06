@@ -2,8 +2,8 @@
  *   Engine for processing m,n,k-games
  *
  *   In particular:
- *     - tic-tac-toe is the 3,3,3-game 
- *     - free-style gomoku is the 19,19,5-game
+ *     - Tic-tac-toe is the 3,3,3-game 
+ *     - free-style Gomoku is the 15,15,5-game
  *
  *   More details about m,n,k - games:
  *   https://en.wikipedia.org/wiki/M,n,k-game
@@ -11,6 +11,7 @@
 
 function XoGameEngine() {
 
+  //  Possible row orientations
   var vectors = [
     [-1, -1, 1, 1],
     [0, -1, 0, 1],
@@ -18,27 +19,36 @@ function XoGameEngine() {
     [-1, 0, 1, 0]
   ];
 
+  //  Default game settings
+  var sizeX = 3;
+  var sizeY = 3;
+  var winCondition = 3;
+
   var turns = {};
   var currentPlayerIsFirst = true;
   var winArray = [];
   var isVictory = false;
 
-  var sizeX;
-  var sizeY;
-  var winCondition;
-
+  //  Game init method: 
   this.start = function start(settings, loadedTurns) {
-    sizeX = settings.sizeX;
-    sizeY = settings.sizeY;
-    winCondition = settings.winCondition;
-    currentPlayerIsFirst = settings.isNextTurnByX;
-    if (loadedTurns) turns = loadedTurns;
-    else turns = {};
+    if (settings) {
+      sizeX = settings.sizeX;
+      sizeY = settings.sizeY;
+      winCondition = settings.winCondition;
+      currentPlayerIsFirst = settings.isNextTurnByX;
+    }
+    if (loadedTurns) {
+      turns = loadedTurns;
+    }
+    else {
+      turns = {};
+    }
     winArray = [];
     isVictory = false;
   };
-  
-  this.turnsToString = function () {
+
+  //  Method for packing turn information (to save to the local storage then)
+  this.turnsToString = function() {
     var resArr = [];
     var resArrTurn;
     for (var key in turns) {
@@ -83,7 +93,6 @@ function XoGameEngine() {
 
     currentPlayerIsFirst = !currentPlayerIsFirst;
     res.status = 'ok';
-    
     return res;
   };
 
@@ -91,11 +100,12 @@ function XoGameEngine() {
     var bestTurn = {
       x: Math.round(Math.random() * (sizeX - 1)),
       y: Math.round(Math.random() * (sizeY - 1)),
-      score: 3
+      score: 2
     };
     var candidates = {};
     var newTurn;
     var yourValues;
+    var sumWithPowFn;
     for (var turn in turns) {
       for (var i = 0; i < 4; i++) {
         for (var j = 0; j < 4; j += 2) {
@@ -108,18 +118,22 @@ function XoGameEngine() {
 
           // false means 'only calculate without setting' 
           newTurn.values = calculateValues(newTurn.x, newTurn.y, currentPlayerIsFirst, false);
-          if (Math.max.apply(null, newTurn.values) >= winCondition) return this.makeTurn(newTurn.x, newTurn.y);
+          if (Math.max.apply(null, newTurn.values) >= winCondition) {
+            return this.makeTurn(newTurn.x, newTurn.y);
+          }
+
           yourValues = calculateValues(newTurn.x, newTurn.y, !currentPlayerIsFirst, false);
           if (Math.max.apply(null, yourValues) >= winCondition) {
             newTurn.score = 10000;
           }
           else {
-            newTurn.score = newTurn.values.reduce(function(sum, current) {
-              return sum + current;
-            }, 0) + yourValues.reduce(function(sum, current) {
-              return sum + current;
-            }, 0);
+            sumWithPowFn = function(sum, current) {
+              return sum + current * current;
+            };
+            newTurn.score = newTurn.values.reduce(sumWithPowFn, 0) +
+              yourValues.reduce(sumWithPowFn, 0);
           }
+
           candidates[('' + newTurn.x + ';' + newTurn.y)] = newTurn.score;
           if (newTurn.score > bestTurn.score) bestTurn = newTurn;
         }
@@ -152,22 +166,29 @@ function XoGameEngine() {
         }
       }
     }
+
     if (isAlsoSet) {
       turns[x + ';' + y] = {
         isByFirstPlayer: currentPlayerIsFirst,
         values: newValues,
       };
     }
+
     return newValues;
   }
 
   function setValueByVector(x, y, value, directionId, vector) {
     var myX = x + vector[0];
     var myY = y + vector[1];
-    if (myX < 0 || myY < 0 || myX >= sizeX || myY >= sizeY || !(('' + myX + ';' + myY) in turns)) return false;
+    if (myX < 0 || myY < 0 || myX >= sizeX || myY >= sizeY ||
+      !(('' + myX + ';' + myY) in turns)) {
+         return false;
+    }
     if (turns['' + myX + ';' + myY].isByFirstPlayer === currentPlayerIsFirst) {
       turns['' + myX + ';' + myY].values[directionId] = value;
-      if (value >= winCondition) winArray.push([myX, myY]);
+      if (value >= winCondition) {
+        winArray.push([myX, myY]);
+      }
       setValueByVector(myX, myY, value, directionId, vector);
       return true;
     }

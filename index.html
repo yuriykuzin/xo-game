@@ -1,34 +1,24 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <title>XO-game</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="xo-game-main.css">
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/classlist/2014.01.31/classList.min.js"></script>
-  <script type="text/javascript" src="xo-game-bundle.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/classlist/2014.01.31/classList.min.js" defer></script>
+  <script type="text/javascript" src="xo-game-bundle.js" defer></script>
 </head>
-
 <body class="page">
-
   <div class="options-button">Options</div>
-
   <div class="board">
-
     <div class="board__game boardgame__start-animation">
       <div class="field"></div>
-      <div class="field__background">x</div>
+      <div class="field__background"></div>
     </div>
-
     <div class="options-frame">
       <form class="options-form">
         <fieldset class="options-form__fieldset">
-
-          <div class="options-form__row">
-            <legend class="options-form__legend">Options</legend>
-          </div>
-
+          <legend class="options-form__legend">Options</legend>
           <div class="options-form__row">
             <div class="options-form__row__half">
               <label class="options-form__label" for="isHumanX">Player X</label>
@@ -40,7 +30,6 @@
               </select>
             </div>
           </div>
-
           <div class="options-form__row">
             <div class="options-form__row__half">
               <label class="options-form__label" for="isHumanO">Player O</label>
@@ -52,7 +41,6 @@
               </select>
             </div>
           </div>
-
           <div class="options-form__row">
             <div class="options-form__row__half">
               <label class="options-form__label" for="whoGoesFirst">Goes First</label>
@@ -65,7 +53,6 @@
               </select>
             </div>
           </div>
-
           <div class="options-form__row">
             <div class="options-form__row__half">
               <label class="options-form__label" for="sizeX">Width</label>
@@ -91,7 +78,6 @@
               </select>
             </div>
           </div>
-
           <div class="options-form__row">
             <div class="options-form__row__half">
               <label class="options-form__label" for="sizeY">Height</label>
@@ -117,7 +103,6 @@
               </select>
             </div>
           </div>
-
           <div class="options-form__row">
             <div class="options-form__row__half">
               <label class="options-form__label" for="winCondition">Win Condition</label>
@@ -140,7 +125,6 @@
               </select>
             </div>
           </div>
-
           <div class="options-form__row buttons">
             <div class="options-form__row__half">
               <button id="newGameBtn" name="newGameBtn" class="options-form__btn">New Game</button>
@@ -149,18 +133,14 @@
               <button id="continueBtn" name="continueBtn" class="options-form__btn">Continue</button>
             </div>
           </div>
-
         </fieldset>
       </form>
     </div>
   </div>
-
   <div id="myModal" class="modal">
     <div class="modal__content">
       <p class="modal__content__message"></p>
     </div>
-
   </div>
 </body>
-
 </html>
