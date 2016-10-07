@@ -4,7 +4,7 @@ Tic-tac-toe, Gomoku and M,N,K-game in general demo
 Mobile friendly, responsive. Tested on Chrome and Firefox for now.
 
 Some features:
-- custom field size and win conditions
+- custom field size and win conditions (try to press "Options" button)
 - player vs player, player vs device, device vs device modes
 - shaking event handler (try to shake while playing on a mobile device with g-sensor)
 - saving settings and game turns to local storage (try to reload page in your browser)
