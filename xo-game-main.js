@@ -16,7 +16,7 @@
     sizeY: 3,
     winCondition: 3
   };
-
+ 
   //  fast access to some DOM elements:
   var backFieldElement;
   var fieldElement;
